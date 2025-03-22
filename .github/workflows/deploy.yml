@@ -6,6 +6,9 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted  # используем self-hosted runner
+    env:
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
