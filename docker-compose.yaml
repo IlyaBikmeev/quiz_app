@@ -9,7 +9,7 @@ services:
       - "8080:8080"
     restart: always
     environment:
-      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_PROFILES_ACTIVE:prod
       - MAIL_USERNAME: ${MAIL_USERNAME}
       - MAIL_PASSWORD: ${MAIL_PASSWORD}
     healthcheck:
