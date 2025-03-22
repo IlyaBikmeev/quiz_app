@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Добро пожаловать в QuizApp</title>
+    <title>QuizForge - Подготовка к экзаменам</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -13,40 +13,109 @@
 <!-- Основной блок -->
 <div class="container mt-5">
     <div class="p-4 p-md-5 bg-primary text-white rounded-3">
-        <h1 class="display-4 fs-2 fs-md-4">Добро пожаловать в QuizApp!</h1>
-        <p class="lead">Проверь свои знания, проходи увлекательные квизы и соревнуйся с друзьями.</p>
+        <h1 class="display-4 fs-2 fs-md-4">Эффективное обучение с QuizForge!</h1>
+        <p class="lead">Идеальный инструмент для подготовки к экзаменам: создавай квизы, повторяй материал и отслеживай свой прогресс.</p>
         <hr class="my-4">
-        <p>Начни прямо сейчас и открой для себя мир интересных вопросов.</p>
-        <a class="btn btn-light btn-lg" th:href="@{/quiz}" role="button">Перейти к квизам</a>
+        <p>Наше приложение разработано специально для студентов, которые хотят быстро и эффективно запомнить учебный материал.</p>
+        <a class="btn btn-light btn-lg" th:href="@{/quiz}" role="button">Начать обучение</a>
     </div>
 
     <!-- Раздел "Как это работает" -->
     <div class="row mt-5">
         <div class="col-12 col-md-4 mb-3 mb-md-0">
-            <h3>Выбери квиз</h3>
-            <p>На главной странице представлен список доступных квизов на разные темы.</p>
+            <h3>Создавай квизы</h3>
+            <p>Легко создавай карточки и тесты по своим конспектам и учебным материалам. Добавляй вопросы любой сложности.</p>
         </div>
         <div class="col-12 col-md-4 mb-3 mb-md-0">
-            <h3>Пройди тест</h3>
-            <p>Отвечай на вопросы и сразу получай обратную связь о правильности ответов.</p>
+            <h3>Тренируйся регулярно</h3>
+            <p>Многократно проходи созданные квизы, закрепляя материал в памяти. Мгновенная обратная связь помогает быстрее запоминать.</p>
         </div>
         <div class="col-12 col-md-4">
-            <h3>Смотри статистику</h3>
-            <p>Следи за своими результатами и сравнивай их с результатами других участников.</p>
+            <h3>Отслеживай прогресс</h3>
+            <p>Анализируй свои результаты в реальном времени. Определяй слабые места и концентрируйся на них перед экзаменом.</p>
+        </div>
+    </div>
+
+    <!-- Дополнительный блок преимуществ -->
+    <div class="mt-5 p-4 bg-white rounded shadow-sm">
+        <h2 class="mb-4">Почему студенты выбирают QuizForge</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-lightning" viewBox="0 0 16 16">
+                            <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641l2.5-8.5z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>Быстрое запоминание</h5>
+                        <p class="mb-0">Регулярное повторение с помощью тестов - научно доказанный метод запоминания</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-graph-up" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M0 0h1v15h15v1H0V0Zm14.817 3.113a.5.5 0 0 1 .07.704l-4.5 5.5a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61 4.15-5.073a.5.5 0 0 1 .704-.07Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>Статистика обучения</h5>
+                        <p class="mb-0">Отслеживание прогресса показывает, на чем нужно сосредоточиться</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+                            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>Экономия времени</h5>
+                        <p class="mb-0">Учитесь эффективнее, повторяя только то, что вызывает трудности</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-mortarboard" viewBox="0 0 16 16">
+                            <path d="M8.211 2.047a.5.5 0 0 0-.422 0l-7.5 3.5a.5.5 0 0 0 .025.917l7.5 3a.5.5 0 0 0 .372 0L14 7.14V13a1 1 0 0 0-1 1v2h3v-2a1 1 0 0 0-1-1V6.739l.686-.275a.5.5 0 0 0 .025-.917l-7.5-3.5ZM8 8.46 1.758 5.965 8 3.052l6.242 2.913L8 8.46Z"/>
+                            <path d="M4.176 9.032a.5.5 0 0 0-.656.327l-.5 1.7a.5.5 0 0 0 .294.605l4.5 1.8a.5.5 0 0 0 .372 0l4.5-1.8a.5.5 0 0 0 .294-.605l-.5-1.7a.5.5 0 0 0-.656-.327L8 10.466 4.176 9.032Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>Лучшие оценки</h5>
+                        <p class="mb-0">Студенты, использующие QuizForge, сдают экзамены с более высокими результатами</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Блок с популярными квизами (если есть) -->
     <div class="mt-5">
-        <h2>Популярные квизы</h2>
+        <h2>Популярные области для подготовки</h2>
         <div class="list-group">
-            <!-- Пример статического элемента, его можно заменить динамическим выводом -->
-            <a href="/quiz/1" class="list-group-item list-group-item-action">
-                Java Basics
+            <a href="/quiz/1" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Программирование на Java
+                <span class="badge bg-primary rounded-pill">98 квизов</span>
             </a>
-            <a href="/quiz/2" class="list-group-item list-group-item-action">
-                Spring Boot
+            <a href="/quiz/2" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Spring Framework
+                <span class="badge bg-primary rounded-pill">45 квизов</span>
             </a>
+            <a href="/quiz/3" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                Базы данных
+                <span class="badge bg-primary rounded-pill">72 квиза</span>
+            </a>
+        </div>
+        <div class="text-center mt-3">
+            <a href="/quiz" class="btn btn-outline-primary">Все категории</a>
         </div>
     </div>
 </div>
