@@ -92,6 +92,7 @@ public class QuizPlayService {
                 .answeredQuestions(answeredQuestions)
                 .totalQuestions(totalQuestions)
                 .correctAnswersCount(correctAnswersCount)
+                .correctAnswers(new ArrayList<>(question.getCorrectAnswers()))
                 .build();
     }
 }

@@ -87,9 +87,26 @@
                 let message = data.correct ? 'Правильно!' : 'Неправильно!';
                 alertContainer.innerHTML = `<div class="alert ${data.correct ? 'alert-success' : 'alert-danger'}" role="alert">${message}</div>`;
 
+                // Показать правильные ответы если пользователь ответил неправильно
+                if (!data.correct) {
+                    let correctAnswersHtml = `
+                    <div class="alert alert-info" role="alert">
+                        <p>Правильный ответ:</p>
+                        <ul>
+                            ${data.correctAnswers.map((index) => `<li>${question.options[index]}</li>`).join('')}
+                        </ul>
+                    </div>`;
+                    alertContainer.innerHTML += correctAnswersHtml;
+                }
+
                 document.getElementById('statistics-container').innerHTML = `
                 <p>Вопросов отвечено: ${data.answeredQuestions} из ${data.totalQuestions}</p>
                 <p>Правильных ответов: ${data.correctAnswersCount}</p>`;
+
+                document.querySelectorAll('input[name="question_' + question.id + '"]').forEach(input => {
+                    input.disabled = true;
+                });
+
                 submitButton.style.display = 'none';
                 document.getElementById('next-button').style.display = 'block';
             })
