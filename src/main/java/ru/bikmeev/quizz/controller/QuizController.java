@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import ru.bikmeev.quizz.dto.CreateQuizRequest;
 import ru.bikmeev.quizz.dto.QuizResponse;
@@ -47,7 +48,7 @@ public class QuizController {
         return "import_quiz";
     }
 
-    @PostMapping
+    @PostMapping("/new/manual")
     public String createQuiz(@ModelAttribute CreateQuizRequest request,
                              BindingResult bindingResult,
                              RedirectAttributes redirectAttributes) {
@@ -56,6 +57,12 @@ public class QuizController {
         }
         quizService.create(request);
         redirectAttributes.addFlashAttribute("message", "Квиз успешно создан!");
+        return "redirect:/quiz";
+    }
+
+    @PostMapping("/new/import")
+    public String importQuizFromFile(@RequestParam("file") MultipartFile file) {
+        quizService.importQuizFromFile(file);
         return "redirect:/quiz";
     }
 }
