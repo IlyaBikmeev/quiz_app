@@ -10,8 +10,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
+      - name: Stop and remove existing containers
+        run: |
+          docker-compose down || true
+          docker system prune -f || true  # Удаляет неиспользуемые данные (опционально)
+
       - name: Build Docker images with docker-compose
-        run: docker-compose build
+        run: docker-compose build --no-cache
 
       - name: Deploy application with docker-compose
-        run: docker-compose up -d
+        run: docker-compose up -d --force-recreate
