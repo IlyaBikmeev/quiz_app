@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.bikmeev.quizz.config.JwtService;
 import ru.bikmeev.quizz.dto.AuthResponse;
 import ru.bikmeev.quizz.dto.LoginRequest;
+import ru.bikmeev.quizz.dto.RegisterRequest;
 import ru.bikmeev.quizz.dto.VerifyOtpRequest;
 import ru.bikmeev.quizz.entity.UserEntity;
 import ru.bikmeev.quizz.repository.UserRepository;
@@ -22,19 +23,59 @@ public class AuthService {
     private final UserDetailsServiceImpl userDetailsService;
     private final OtpService otpService;
 
+    /**
+     * Метод для регистрации нового пользователя
+     * @param request данные для регистрации
+     * @return ответ с сообщением о статусе регистрации
+     * @throws MessagingException если не удалось отправить email
+     */
+    public AuthResponse register(RegisterRequest request) throws MessagingException {
+        String email = request.getEmail();
+        String name = request.getName();
+        
+        // Проверяем, существует ли пользователь с таким email
+        if (userRepository.existsByEmail(email)) {
+            return AuthResponse.builder()
+                    .message("Пользователь с таким email уже существует")
+                    .build();
+        }
+        
+        // Проверяем, существует ли пользователь с таким именем
+        if (userRepository.existsByName(name)) {
+            return AuthResponse.builder()
+                    .message("Пользователь с таким именем уже существует")
+                    .build();
+        }
+        
+        // Создаем нового пользователя
+        UserEntity newUser = UserEntity.builder()
+                .email(email)
+                .name(name)
+                .build();
+        
+        userRepository.save(newUser);
+        
+        // Генерируем и отправляем OTP для подтверждения
+        String otp = otpService.generateOtp(email);
+        emailService.sendOtpEmail(email, otp);
+        
+        return AuthResponse.builder()
+                .message("Регистрация успешна. Код подтверждения отправлен на вашу почту")
+                .build();
+    }
+
+    /**
+     * Метод для генерации OTP для авторизации существующего пользователя
+     */
     public AuthResponse generateOtp(LoginRequest request) throws MessagingException {
         String email = request.getEmail();
         
-        // Создаем пользователя, если не существует
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    // Создаем нового пользователя, если email не найден
-                    UserEntity newUser = UserEntity.builder()
-                            .email(email)
-                            .name(email.split("@")[0]) // Используем часть email до @ как имя по умолчанию
-                            .build();
-                    return userRepository.save(newUser);
-                });
+        // Проверяем существование пользователя
+        if (!userRepository.existsByEmail(email)) {
+            return AuthResponse.builder()
+                    .message("Пользователь с таким email не найден. Пожалуйста, зарегистрируйтесь")
+                    .build();
+        }
 
         // Генерация OTP и сохранение в кеше
         String otp = otpService.generateOtp(email);

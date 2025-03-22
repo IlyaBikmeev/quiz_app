@@ -40,29 +40,59 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String jwt = extractJwtFromRequest(request);
             
             if (StringUtils.hasText(jwt)) {
+                // Проверяем формат и валидность токена перед проверкой пользователя
+                if (!jwtService.isTokenFormatValid(jwt)) {
+                    // Если токен имеет неверный формат, очищаем куки
+                    clearAuthCookie(response);
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                
                 String userEmail = jwtService.extractUsername(jwt);
                 
                 if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-                    if (jwtService.isTokenValid(jwt, userDetails)) {
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-                        authToken.setDetails(
-                                new WebAuthenticationDetailsSource().buildDetails(request)
-                        );
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                        log.debug("Аутентифицирован пользователь: {}", userEmail);
+                    // Проверяем существование пользователя
+                    try {
+                        UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+                        if (jwtService.isTokenValid(jwt, userDetails)) {
+                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                            authToken.setDetails(
+                                    new WebAuthenticationDetailsSource().buildDetails(request)
+                            );
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                            log.debug("Аутентифицирован пользователь: {}", userEmail);
+                        } else {
+                            clearAuthCookie(response);
+                        }
+                    } catch (Exception e) {
+                        log.debug("Пользователь с email {} не найден или произошла ошибка при загрузке: {}", 
+                                userEmail, e.getMessage());
+                        // Очищаем куки, чтобы предотвратить повторные запросы с тем же токеном
+                        clearAuthCookie(response);
                     }
                 }
             }
         } catch (Exception e) {
             log.error("Не удалось установить аутентификацию пользователя", e);
+            // Очищаем куки для предотвращения повторных ошибок
+            clearAuthCookie(response);
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    /**
+     * Очищает куки с токеном аутентификации
+     */
+    private void clearAuthCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("authToken", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
     }
     
     /**

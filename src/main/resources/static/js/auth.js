@@ -57,20 +57,45 @@ function checkAuthToken() {
     const currentPath = window.location.pathname;
     
     // Список страниц, не требующих авторизации
-    const publicPages = ['/', '/auth/login', '/auth/verify', '/error'];
+    const publicPages = ['/', '/auth/login', '/auth/register', '/auth/verify', '/error'];
     const isPublicPage = publicPages.some(page => currentPath === page) || 
                          currentPath.startsWith('/css/') || 
                          currentPath.startsWith('/js/') || 
                          currentPath.startsWith('/images/');
     
     if (token) {
-        // Устанавливаем токен в cookie для поддержки non-JS запросов
-        setCookie('authToken', token, 1); // 1 день
-        
-        console.log('Токен аутентификации найден');
-        
-        // Добавляем класс authenticated к body, чтобы можно было стилизовать страницу
-        document.body.classList.add('authenticated');
+        // Сначала проверяем действительность токена
+        validateToken(token)
+            .then(isValid => {
+                if (isValid) {
+                    // Устанавливаем токен в cookie для поддержки non-JS запросов
+                    setCookie('authToken', token, 1); // 1 день
+                    
+                    console.log('Токен аутентификации действителен');
+                    
+                    // Добавляем класс authenticated к body, чтобы можно было стилизовать страницу
+                    document.body.classList.add('authenticated');
+                } else {
+                    console.log('Токен аутентификации недействителен');
+                    clearAuthToken();
+                    
+                    // Если страница требует аутентификации, перенаправляем
+                    if (!isPublicPage) {
+                        console.log('Перенаправление на страницу входа');
+                        window.location.href = '/auth/login';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка при проверке токена:', error);
+                clearAuthToken();
+                
+                // Если страница требует аутентификации, перенаправляем
+                if (!isPublicPage) {
+                    console.log('Перенаправление на страницу входа');
+                    window.location.href = '/auth/login';
+                }
+            });
     } else {
         console.log('Токен аутентификации не найден');
         
@@ -80,6 +105,23 @@ function checkAuthToken() {
             window.location.href = '/auth/login';
         }
     }
+}
+
+// Функция для проверки действительности токена
+function validateToken(token) {
+    return fetch('/auth/validate-token', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        return response.ok;
+    })
+    .catch(() => {
+        return false;
+    });
 }
 
 // Сохранение токена в localStorage и cookie

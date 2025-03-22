@@ -26,16 +26,43 @@
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
                         <a class="nav-link" th:href="@{/auth/login}">Войти</a>
                     </li>
-                    <li class="nav-item" sec:authorize="isAuthenticated()">
-                        <span class="nav-link" sec:authentication="name"></span>
-                    </li>
-                    <li class="nav-item" sec:authorize="isAuthenticated()">
-                        <a class="nav-link" href="#" onclick="logout(); return false;">Выйти</a>
+                    <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="avatar-circle me-2">
+                                <span class="avatar-text" id="user-avatar-initial">?</span>
+                            </div>
+                            <span id="user-display-name">Загрузка...</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" th:href="@{/user/profile}">Профиль</a></li>
+                            <li><a class="dropdown-item" th:href="@{/user/settings}">Настройки</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout(); return false;">Выйти</a></li>
+                        </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
+    
+    <!-- Добавляем CSS для аватара -->
+    <style>
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            background-color: #007bff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .navbar .dropdown-toggle::after {
+            margin-left: 0.5em;
+        }
+    </style>
     
     <!-- Подключаем script для аутентификации -->
     <script th:src="@{/js/auth.js}"></script>
@@ -46,6 +73,33 @@
             // Делаем запрос на сервер для очистки сессии и перенаправляем на страницу логина
             window.location.href = '/auth/logout';
         }
+        
+        // Загружаем информацию о пользователе после загрузки страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем, авторизован ли пользователь
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                // Загружаем информацию о пользователе
+                fetch('/auth/user-info', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.name) {
+                        // Обновляем аватар и имя пользователя
+                        document.getElementById('user-avatar-initial').textContent = data.name.charAt(0).toUpperCase();
+                        document.getElementById('user-display-name').textContent = data.name;
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка при получении информации о пользователе:', error);
+                });
+            }
+        });
     </script>
 </div>
 </body>
