@@ -24,6 +24,10 @@ public class AttemptEntity {
     @JoinColumn(name = "quiz_id", referencedColumnName = "id")
     private QuizEntity quiz;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private UserEntity user;
+
     @OneToMany(mappedBy = "attempt", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AnswerEntity> answers = new ArrayList<>();
 }

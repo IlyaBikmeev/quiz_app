@@ -21,6 +21,10 @@ public class QuizEntity {
 
     private String title;
 
+    @ManyToOne
+    @JoinColumn(name = "creator_id", referencedColumnName = "id")
+    private UserEntity creator;
+
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
     private List<QuestionEntity> questions;
 }

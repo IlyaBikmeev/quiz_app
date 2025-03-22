@@ -12,7 +12,8 @@
 
 <div class="container mt-5">
     <h1 th:text="${quiz.title}" class="text-center"></h1>
-    <p class="text-center">Этот квиз содержит несколько вопросов. Попробуйте пройти!</p>
+    <p class="text-center text-muted">Создатель: <span th:text="${quiz.creatorName}">Автор</span></p>
+    <p class="text-center">Этот квиз содержит <span th:text="${quiz.questions.size()}">0</span> вопросов. Попробуйте пройти!</p>
 
     <div class="text-center mt-4">
         <form th:action="@{'/quiz/' + ${quiz.id} + '/start'}" method="post">

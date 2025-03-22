@@ -1,7 +1,16 @@
+CREATE TABLE users
+(
+    id             BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email          VARCHAR(255) NOT NULL UNIQUE,
+    name           VARCHAR(255)
+);
+
 CREATE TABLE quizzes
 (
-    id    BIGINT AUTO_INCREMENT PRIMARY KEY,
-    title VARCHAR(255) NOT NULL
+    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title       VARCHAR(255) NOT NULL,
+    creator_id  BIGINT,
+    FOREIGN KEY (creator_id) REFERENCES users (id)
 );
 
 CREATE TABLE questions
@@ -31,8 +40,10 @@ CREATE TABLE attempts
 (
     id        BIGINT AUTO_INCREMENT PRIMARY KEY,
     quiz_id   BIGINT NOT NULL,
+    user_id   BIGINT NOT NULL,
     completed BOOLEAN NOT NULL DEFAULT FALSE,
-    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE
+    FOREIGN KEY (quiz_id) REFERENCES quizzes (id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
 

@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.bikmeev.quizz.dto.*;
 import ru.bikmeev.quizz.entity.QuestionEntity;
 import ru.bikmeev.quizz.entity.QuizEntity;
+import ru.bikmeev.quizz.entity.UserEntity;
 import ru.bikmeev.quizz.repository.QuizRepository;
 
 import java.io.BufferedReader;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuizService {
     private final QuizRepository quizRepository;
+    private final AuthService authService;
 
     public Page<QuizDto> getQuizPage(int page, int size) {
         return quizRepository.findAll(PageRequest.of(page, size))
@@ -36,6 +38,7 @@ public class QuizService {
         return QuizDto.builder()
                 .id(entity.getId())
                 .title(entity.getTitle())
+                .creatorName(entity.getCreator() != null ? entity.getCreator().getName() : "Неизвестный")
                 .questions(entity.getQuestions()
                         .stream()
                         .map(this::mapQuestionDto).toList())
@@ -58,8 +61,11 @@ public class QuizService {
 
     @Transactional
     public QuizResponse create(CreateQuizRequest request) {
+        UserEntity currentUser = authService.getCurrentUser();
+        
         QuizEntity quizToSave = QuizEntity.builder()
                 .title(request.getTitle())
+                .creator(currentUser)
                 .build();
 
         quizToSave.setQuestions(request.getQuestions().stream()
@@ -76,6 +82,7 @@ public class QuizService {
 
         return QuizResponse.builder()
                 .title(savedQuiz.getTitle())
+                .creatorName(savedQuiz.getCreator().getName())
                 .questions(savedQuiz.getQuestions().stream()
                         .map(q -> QuestionResponse.builder()
                                 .text(q.getText())
@@ -89,11 +96,14 @@ public class QuizService {
     @Transactional
     @SneakyThrows
     public void importQuizFromFile(MultipartFile file) {
+        UserEntity currentUser = authService.getCurrentUser();
+        
         String content = new String(file.getBytes(), StandardCharsets.UTF_8);
 
         List<QuestionEntity> questions = parseQuestions(content);
         QuizEntity quiz = new QuizEntity();
         quiz.setTitle("Импортированный квиз " + LocalDateTime.now());
+        quiz.setCreator(currentUser);
         quiz.setQuestions(questions);
         questions.forEach(question -> question.setQuiz(quiz));
         quizRepository.save(quiz);

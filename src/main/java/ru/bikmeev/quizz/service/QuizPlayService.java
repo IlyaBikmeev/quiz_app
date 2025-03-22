@@ -13,6 +13,7 @@ import ru.bikmeev.quizz.entity.AnswerEntity;
 import ru.bikmeev.quizz.entity.AttemptEntity;
 import ru.bikmeev.quizz.entity.QuestionEntity;
 import ru.bikmeev.quizz.entity.QuizEntity;
+import ru.bikmeev.quizz.entity.UserEntity;
 import ru.bikmeev.quizz.repository.AnswerRepository;
 import ru.bikmeev.quizz.repository.AttemptRepository;
 import ru.bikmeev.quizz.repository.QuizRepository;
@@ -26,12 +27,16 @@ public class QuizPlayService {
     private final AttemptRepository attemptRepository;
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
+    private final AuthService authService;
 
     @Transactional
     public AttemptResponse createAttempt(Long quizId) {
+        UserEntity currentUser = authService.getCurrentUser();
         QuizEntity quiz = quizRepository.findById(quizId).orElseThrow();
+        
         AttemptEntity attempt = new AttemptEntity();
         attempt.setQuiz(quiz);
+        attempt.setUser(currentUser);
 
         AttemptEntity savedAttempt = attemptRepository.save(attempt);
         return AttemptResponse.builder()
@@ -49,9 +54,17 @@ public class QuizPlayService {
 
     @Transactional
     public AnswerResponse answer(Long attemptId, AnswerRequest request) {
+        UserEntity currentUser = authService.getCurrentUser();
+        
         AttemptEntity attempt = attemptRepository.findById(attemptId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId))
         );
+        
+        // Проверяем, что попытка принадлежит текущему пользователю
+        if (!attempt.getUser().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
+        }
+        
         QuizEntity quiz = quizRepository.findById(request.getQuizId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No quiz with id %d found".formatted(request.getQuizId()))
         );

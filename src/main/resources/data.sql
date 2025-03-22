@@ -1,8 +1,12 @@
+-- Добавляем тестового пользователя
+INSERT INTO users (id, email, name)
+VALUES (228, 'test@example.com', 'Тестовый Пользователь');
+
 -- Вставляем квизы
-INSERT INTO quizzes (id, title)
-VALUES (1111, 'Java Basics');
-INSERT INTO quizzes (id, title)
-VALUES (2222, 'Spring Boot');
+INSERT INTO quizzes (id, title, creator_id)
+VALUES (1111, 'Java Basics', 228);
+INSERT INTO quizzes (id, title, creator_id)
+VALUES (2222, 'Spring Boot', 228);
 
 -- Вставляем вопросы
 INSERT INTO questions (id, text, quiz_id)

@@ -15,5 +15,6 @@ public class QuizResponse {
     private Long id;
     private String title;
     private String description;
+    private String creatorName;
     private List<QuestionResponse> questions;
 }
