@@ -3,6 +3,7 @@ package ru.bikmeev.quizz.service;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,13 +16,14 @@ public class EmailService {
     private final JavaMailSender mailSender;
     private final MailProperties properties;
 
+    @SneakyThrows
     public void sendOtpEmail(String to, String otp) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        helper.setFrom(properties.getUsername());
+        helper.setFrom(properties.getUsername(), "QuizForge");
         helper.setTo(to);
-        helper.setSubject("Ваш код для входа в Quizz");
+        helper.setSubject("Ваш код для входа в QuizForge");
 
         String emailContent = String.format(
                 "<div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;'>" +
