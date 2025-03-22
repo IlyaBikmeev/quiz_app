@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${quiz.title}">Quiz Details</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-5">
+    <h1 th:text="${quiz.title}" class="text-center"></h1>
+    <p class="text-center">Этот квиз содержит несколько вопросов. Попробуйте пройти!</p>
+
+    <div class="text-center mt-4">
+        <form th:action="@{'/quiz/' + ${quiz.id} + '/start'}" method="post">
+            <button type="submit" class="btn btn-success btn-lg">Начать тест</button>
+        </form>
+        <a href="/quiz" class="btn btn-secondary mt-3">Вернуться назад</a>
+    </div>
+</div>
+
+</body>
+</html>
