@@ -51,25 +51,32 @@ function setupAuthInterceptor() {
 
 // Функция для проверки существующего токена при загрузке страницы
 function checkAuthToken() {
-    const token = localStorage.getItem('authToken');
+    // Получаем токен сначала из localStorage, затем пробуем из куки
+    const token = getAuthToken();
     
     // Получаем текущий путь страницы
     const currentPath = window.location.pathname;
     
     // Список страниц, не требующих авторизации
-    const publicPages = ['/', '/auth/login', '/auth/register', '/auth/verify', '/error'];
+    const publicPages = ['/', '/auth/login', '/auth/register', '/auth/verify', '/error', '/auth/token-debug'];
     const isPublicPage = publicPages.some(page => currentPath === page) || 
                          currentPath.startsWith('/css/') || 
                          currentPath.startsWith('/js/') || 
                          currentPath.startsWith('/images/');
+    
+    // Проверяем, является ли устройство мобильным
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        console.log('Обнаружено мобильное устройство:', navigator.userAgent);
+    }
     
     if (token) {
         // Сначала проверяем действительность токена
         validateToken(token)
             .then(isValid => {
                 if (isValid) {
-                    // Устанавливаем токен в cookie для поддержки non-JS запросов
-                    setCookie('authToken', token, 1); // 1 день
+                    // Устанавливаем токен во все возможные хранилища
+                    syncTokenStorage(token);
                     
                     console.log('Токен аутентификации действителен');
                     
@@ -81,8 +88,8 @@ function checkAuthToken() {
                     
                     // Если страница требует аутентификации, перенаправляем
                     if (!isPublicPage) {
-                        console.log('Перенаправление на страницу входа');
-                        window.location.href = '/auth/login';
+                        console.log('Перенаправление на страницу входа (недействительный токен)');
+                        redirectToLogin();
                     }
                 }
             })
@@ -92,8 +99,8 @@ function checkAuthToken() {
                 
                 // Если страница требует аутентификации, перенаправляем
                 if (!isPublicPage) {
-                    console.log('Перенаправление на страницу входа');
-                    window.location.href = '/auth/login';
+                    console.log('Перенаправление на страницу входа (ошибка проверки)');
+                    redirectToLogin();
                 }
             });
     } else {
@@ -101,10 +108,117 @@ function checkAuthToken() {
         
         // Если страница требует аутентификации и токен не найден, перенаправляем
         if (!isPublicPage) {
-            console.log('Перенаправление на страницу входа');
-            window.location.href = '/auth/login';
+            console.log('Перенаправление на страницу входа (токен не найден)');
+            redirectToLogin();
         }
     }
+}
+
+// Безопасное перенаправление на страницу логина
+function redirectToLogin() {
+    // Проверяем, находимся ли мы уже на странице логина
+    if (window.location.pathname === '/auth/login') {
+        console.log('Уже на странице логина, не перенаправляем');
+        return;
+    }
+    
+    // Для диагностики на мобильных устройствах
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+        // На мобильных устройствах выполняем особый редирект с задержкой и проверкой
+        console.log('Выполняется безопасный редирект на мобильном устройстве');
+        
+        // Добавляем индикатор загрузки для пользователя
+        const loadingDiv = document.createElement('div');
+        loadingDiv.style.position = 'fixed';
+        loadingDiv.style.top = '0';
+        loadingDiv.style.left = '0';
+        loadingDiv.style.width = '100%';
+        loadingDiv.style.height = '100%';
+        loadingDiv.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+        loadingDiv.style.display = 'flex';
+        loadingDiv.style.justifyContent = 'center';
+        loadingDiv.style.alignItems = 'center';
+        loadingDiv.style.zIndex = '9999';
+        loadingDiv.innerHTML = '<div style="text-align: center;"><div style="border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 50px; height: 50px; margin: 0 auto; animation: spin 2s linear infinite;"></div><p style="margin-top: 20px;">Перенаправление...</p></div>';
+        
+        // Добавляем стили анимации
+        const style = document.createElement('style');
+        style.innerHTML = '@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+        
+        document.body.appendChild(loadingDiv);
+        
+        // Используем setTimeout для задержки редиректа
+        setTimeout(() => {
+            // Проверка состояния сети перед редиректом
+            if (navigator.onLine) {
+                window.location.href = '/auth/login';
+            } else {
+                alert('Нет подключения к интернету. Повторите попытку позже.');
+                loadingDiv.remove();
+            }
+        }, 500);
+    } else {
+        // На десктопных устройствах обычный редирект
+        window.location.href = '/auth/login';
+    }
+}
+
+// Получение токена из всех возможных источников
+function getAuthToken() {
+    // Пробуем из localStorage
+    try {
+        const localToken = localStorage.getItem('authToken');
+        if (localToken) {
+            return localToken;
+        }
+    } catch (e) {
+        console.warn('Ошибка при чтении из localStorage:', e);
+    }
+    
+    // Пробуем из sessionStorage
+    try {
+        const sessionToken = sessionStorage.getItem('authToken');
+        if (sessionToken) {
+            return sessionToken;
+        }
+    } catch (e) {
+        console.warn('Ошибка при чтении из sessionStorage:', e);
+    }
+    
+    // Пробуем из cookie
+    const cookieToken = getCookie('authToken');
+    if (cookieToken) {
+        // Если токен найден в куках, синхронизируем его с другими хранилищами
+        try {
+            localStorage.setItem('authToken', cookieToken);
+        } catch (e) {
+            console.warn('Ошибка при записи в localStorage:', e);
+        }
+        return cookieToken;
+    }
+    
+    return null;
+}
+
+// Синхронизация токена между разными хранилищами
+function syncTokenStorage(token) {
+    // Сохраняем в localStorage и sessionStorage
+    try {
+        localStorage.setItem('authToken', token);
+    } catch (e) {
+        console.warn('Ошибка при записи в localStorage:', e);
+    }
+    
+    try {
+        sessionStorage.setItem('authToken', token);
+    } catch (e) {
+        console.warn('Ошибка при записи в sessionStorage:', e);
+    }
+    
+    // Сохраняем в cookie
+    setCookie('authToken', token, 1); // 1 день
 }
 
 // Функция для проверки действительности токена
@@ -124,15 +238,25 @@ function validateToken(token) {
     });
 }
 
-// Сохранение токена в localStorage и cookie
+// Сохранение токена во всех хранилищах
 function saveAuthToken(token) {
-    localStorage.setItem('authToken', token);
-    setCookie('authToken', token, 1); // 1 день
+    syncTokenStorage(token);
 }
 
-// Удаление токена аутентификации
+// Удаление токена аутентификации из всех хранилищ
 function clearAuthToken() {
-    localStorage.removeItem('authToken');
+    try {
+        localStorage.removeItem('authToken');
+    } catch (e) {
+        console.warn('Ошибка при удалении из localStorage:', e);
+    }
+    
+    try {
+        sessionStorage.removeItem('authToken');
+    } catch (e) {
+        console.warn('Ошибка при удалении из sessionStorage:', e);
+    }
+    
     deleteCookie('authToken');
 }
 
@@ -150,6 +274,18 @@ function setCookie(name, value, days) {
 // Функция для удаления cookie
 function deleteCookie(name) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
+// Получение значения cookie по имени
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
 
 // Инициализация при загрузке страницы

@@ -77,7 +77,7 @@
         // Загружаем информацию о пользователе после загрузки страницы
         document.addEventListener('DOMContentLoaded', function() {
             // Проверяем, авторизован ли пользователь
-            const token = localStorage.getItem('authToken');
+            const token = getAuthToken();
             if (token) {
                 // Загружаем информацию о пользователе
                 fetch('/auth/user-info', {
@@ -87,7 +87,12 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка запроса: ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.name) {
                         // Обновляем аватар и имя пользователя
@@ -97,6 +102,14 @@
                 })
                 .catch(error => {
                     console.error('Ошибка при получении информации о пользователе:', error);
+                    // Если ошибка, пытаемся очистить токен и перезагрузить страницу
+                    if (error.message.includes('401') || error.message.includes('403')) {
+                        clearAuthToken();
+                        // На небезопасных страницах перезагружаем
+                        if (!window.location.pathname.startsWith('/auth/')) {
+                            window.location.reload();
+                        }
+                    }
                 });
             }
         });

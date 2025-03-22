@@ -15,6 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.bikmeev.quizz.config.JwtService;
 import ru.bikmeev.quizz.service.UserDetailsServiceImpl;
 
 import java.io.IOException;
@@ -36,12 +37,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         try {
+            // Логируем полезную информацию для отладки
+            String userAgent = request.getHeader("User-Agent");
+            String requestURI = request.getRequestURI();
+            
             // Получаем токен из разных источников (заголовок, куки, параметр)
             String jwt = extractJwtFromRequest(request);
             
             if (StringUtils.hasText(jwt)) {
+                log.debug("JWT токен найден для запроса: {} (User-Agent: {})", requestURI, userAgent);
+                
                 // Проверяем формат и валидность токена перед проверкой пользователя
                 if (!jwtService.isTokenFormatValid(jwt)) {
+                    log.warn("Недействительный формат токена для запроса: {} (User-Agent: {})", requestURI, userAgent);
                     // Если токен имеет неверный формат, очищаем куки
                     clearAuthCookie(response);
                     filterChain.doFilter(request, response);
@@ -49,6 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
                 
                 String userEmail = jwtService.extractUsername(jwt);
+                log.debug("Извлечен email из токена: {} для запроса: {}", userEmail, requestURI);
                 
                 if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     // Проверяем существование пользователя
@@ -64,17 +73,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     new WebAuthenticationDetailsSource().buildDetails(request)
                             );
                             SecurityContextHolder.getContext().setAuthentication(authToken);
-                            log.debug("Аутентифицирован пользователь: {}", userEmail);
+                            log.debug("Успешная аутентификация пользователя: {} для запроса: {}", userEmail, requestURI);
+                            
+                            // Обновляем куки для поддержания сессии
+                            updateAuthCookie(response, jwt);
                         } else {
+                            log.warn("Токен недействителен для пользователя: {} (срок действия или подпись)", userEmail);
                             clearAuthCookie(response);
                         }
                     } catch (Exception e) {
-                        log.debug("Пользователь с email {} не найден или произошла ошибка при загрузке: {}", 
-                                userEmail, e.getMessage());
+                        log.warn("Пользователь с email {} не найден или произошла ошибка при загрузке: {} (User-Agent: {})", 
+                                userEmail, e.getMessage(), userAgent);
                         // Очищаем куки, чтобы предотвратить повторные запросы с тем же токеном
                         clearAuthCookie(response);
                     }
                 }
+            } else {
+                log.debug("JWT токен не найден для запроса: {} (User-Agent: {})", requestURI, userAgent);
             }
         } catch (Exception e) {
             log.error("Не удалось установить аутентификацию пользователя", e);
@@ -86,12 +101,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
     
     /**
+     * Обновляет куки с токеном аутентификации
+     */
+    private void updateAuthCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("authToken", token);
+        cookie.setMaxAge(86400); // 1 день
+        cookie.setPath("/");
+        cookie.setHttpOnly(true); // Только для HTTP запросов (не доступен для JavaScript)
+        cookie.setSecure(false); // Для dev; установите true в production для HTTPS
+        response.addCookie(cookie);
+    }
+    
+    /**
      * Очищает куки с токеном аутентификации
      */
     private void clearAuthCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie("authToken", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
+        cookie.setHttpOnly(true);
         response.addCookie(cookie);
     }
     

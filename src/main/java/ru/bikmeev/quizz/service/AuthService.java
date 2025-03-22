@@ -120,4 +120,15 @@ public class AuthService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
     }
+
+    /**
+     * Получение пользователя по email
+     * @param email email пользователя
+     * @return сущность пользователя
+     * @throws RuntimeException если пользователь не найден
+     */
+    public UserEntity getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+    }
 } 
