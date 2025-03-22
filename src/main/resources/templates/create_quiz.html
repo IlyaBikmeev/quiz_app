@@ -49,7 +49,7 @@
                                 <input type="text" class="form-control" name="questions[0].options[0]"
                                        placeholder="Ответ 1" required>
                                 <span class="input-group-text">
-                                        <input type="checkbox" name="questions[0].correctOptions" value="0">
+                                        <input type="checkbox" name="questions[0].correctAnswers" value="0">
                                     </span>
                             </div>
                             <!-- Второй вариант ответа -->
@@ -57,7 +57,7 @@
                                 <input type="text" class="form-control" name="questions[0].options[1]"
                                        placeholder="Ответ 2" required>
                                 <span class="input-group-text">
-                                        <input type="checkbox" name="questions[0].correctOptions" value="1">
+                                        <input type="checkbox" name="questions[0].correctAnswers" value="1">
                                     </span>
                             </div>
                         </div>
@@ -101,13 +101,13 @@
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control" name="questions[${questionIndex}].options[0]" placeholder="Ответ 1" required>
                                 <span class="input-group-text">
-                                    <input type="checkbox" name="questions[${questionIndex}].correctOptions" value="0">
+                                    <input type="checkbox" name="questions[${questionIndex}].correctAnswers" value="0">
                                 </span>
                             </div>
                             <div class="input-group mb-2">
                                 <input type="text" class="form-control" name="questions[${questionIndex}].options[1]" placeholder="Ответ 2" required>
                                 <span class="input-group-text">
-                                    <input type="checkbox" name="questions[${questionIndex}].correctOptions" value="1">
+                                    <input type="checkbox" name="questions[${questionIndex}].correctAnswers" value="1">
                                 </span>
                             </div>
                         </div>
@@ -136,7 +136,7 @@
             newOptionDiv.innerHTML = `
                     <input type="text" class="form-control" name="questions[${qIndex}].options[${currentOptions}]" placeholder="Ответ ${currentOptions + 1}" required>
                     <span class="input-group-text">
-                        <input type="checkbox" name="questions[${qIndex}].correctOptions" value="${currentOptions}">
+                        <input type="checkbox" name="questions[${qIndex}].correctAnswers" value="${currentOptions}">
                     </span>
                 `;
             optionsContainer.appendChild(newOptionDiv);
