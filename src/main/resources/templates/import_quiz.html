@@ -19,6 +19,27 @@
                     <label for="quizFile" class="form-label">Выберите файл для импорта</label>
                     <input type="file" class="form-control" id="quizFile" name="file" required>
                 </div>
+                
+                <div class="mb-4 p-3 border rounded bg-white">
+                    <h5>Формат файла для импорта:</h5>
+                    <p>Файл должен содержать вопросы в следующем формате:</p>
+                    <pre class="bg-light p-2 rounded">
+Question: Текст вопроса
+Options:
+[ ] Вариант ответа 1
+[ ] Вариант ответа 2
+[*] Правильный вариант ответа
+[ ] Вариант ответа 4
+                    </pre>
+                    <ul>
+                        <li>Каждый вопрос начинается с <code>Question:</code> и текста вопроса</li>
+                        <li>За ним следует строка <code>Options:</code></li>
+                        <li>Затем перечисляются варианты ответов, где правильный отмечен звездочкой <code>[*]</code></li>
+                        <li>Неправильные варианты отмечены пустыми скобками <code>[ ]</code></li>
+                        <li>Между вопросами не должно быть дополнительных строк</li>
+                    </ul>
+                </div>
+                
                 <button type="submit" class="btn btn-primary w-100">Импортировать квиз</button>
             </form>
             <div class="mt-3">
