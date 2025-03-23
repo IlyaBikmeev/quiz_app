@@ -1,6 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript">
+    (function (m, e, t, r, i, k, a) {
+        m[i] = m[i] || function () {
+            (m[i].a = m[i].a || []).push(arguments)
+        };
+        m[i].l = 1 * new Date();
+        for (var j = 0; j < document.scripts.length; j++) {
+            if (document.scripts[j].src === r) {
+                return;
+            }
+        }
+        k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+    })
+    (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+    ym(100535157, "init", {
+        clickmap: true,
+        trackLinks: true,
+        accurateTrackBounce: true
+    });
+</script>
+<noscript>
+    <div><img src="https://mc.yandex.ru/watch/100535157" style="position:absolute; left:-9999px;" alt=""/></div>
+</noscript>
+<!-- /Yandex.Metrika counter -->
+
 <!-- Фрагмент шапки -->
 <div th:fragment="header">
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -27,7 +54,8 @@
                         <a class="nav-link" th:href="@{/auth/login}">Войти</a>
                     </li>
                     <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown"
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="avatar-circle me-2">
                                 <span class="avatar-text" id="user-avatar-initial">?</span>
                             </div>
@@ -36,7 +64,9 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" th:href="@{/user/profile}">Профиль</a></li>
                             <li><a class="dropdown-item" th:href="@{/user/settings}">Настройки</a></li>
-                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
                             <li><a class="dropdown-item" href="#" onclick="logout(); return false;">Выйти</a></li>
                         </ul>
                     </li>
@@ -44,7 +74,7 @@
             </div>
         </div>
     </nav>
-    
+
     <!-- Добавляем CSS для аватара -->
     <style>
         .avatar-circle {
@@ -59,11 +89,12 @@
             font-weight: bold;
             text-transform: uppercase;
         }
+
         .navbar .dropdown-toggle::after {
             margin-left: 0.5em;
         }
     </style>
-    
+
     <!-- Подключаем script для аутентификации -->
     <script th:src="@{/js/auth.js}"></script>
     <script>
@@ -73,9 +104,9 @@
             // Делаем запрос на сервер для очистки сессии и перенаправляем на страницу логина
             window.location.href = '/auth/logout';
         }
-        
+
         // Загружаем информацию о пользователе после загрузки страницы
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Проверяем, авторизован ли пользователь
             const token = getAuthToken();
             if (token) {
@@ -87,30 +118,30 @@
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Ошибка запроса: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.name) {
-                        // Обновляем аватар и имя пользователя
-                        document.getElementById('user-avatar-initial').textContent = data.name.charAt(0).toUpperCase();
-                        document.getElementById('user-display-name').textContent = data.name;
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка при получении информации о пользователе:', error);
-                    // Если ошибка, пытаемся очистить токен и перезагрузить страницу
-                    if (error.message.includes('401') || error.message.includes('403')) {
-                        clearAuthToken();
-                        // На небезопасных страницах перезагружаем
-                        if (!window.location.pathname.startsWith('/auth/')) {
-                            window.location.reload();
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Ошибка запроса: ${response.status}`);
                         }
-                    }
-                });
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.name) {
+                            // Обновляем аватар и имя пользователя
+                            document.getElementById('user-avatar-initial').textContent = data.name.charAt(0).toUpperCase();
+                            document.getElementById('user-display-name').textContent = data.name;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении информации о пользователе:', error);
+                        // Если ошибка, пытаемся очистить токен и перезагрузить страницу
+                        if (error.message.includes('401') || error.message.includes('403')) {
+                            clearAuthToken();
+                            // На небезопасных страницах перезагружаем
+                            if (!window.location.pathname.startsWith('/auth/')) {
+                                window.location.reload();
+                            }
+                        }
+                    });
             }
         });
     </script>
