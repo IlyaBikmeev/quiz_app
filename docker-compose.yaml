@@ -10,6 +10,9 @@ services:
     restart: always
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
     healthcheck:
