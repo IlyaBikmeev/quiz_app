@@ -21,21 +21,26 @@
 </body>
 
 <script th:inline="javascript">
-    let attemptId = [[${attempt.id}]];
-    let quizId = [[${attempt.quizId}]];
+    /*<![CDATA[*/
+    let attemptId = /*[[${attempt.id}]]*/ 0;
+    let quizId = /*[[${attempt.quizId}]]*/ 0;
     let currentQuestion = 0;
-    let questions = [[${attempt.questions}]];
-
+    let questions = /*[[${attempt.questions}]]*/ [];
+    
     function displayQuestion() {
         document.getElementById('alert-container').innerHTML = '';
         if (currentQuestion < questions.length) {
             let question = questions[currentQuestion];
             let questionContainer = document.getElementById('question-container');
+
+            let inputType = question.multipleChoice ? 'checkbox' : 'radio';
+            let inputName = `question_${question.id}`;
+            
             questionContainer.innerHTML = `
                     <h3 class="h4 h3-md">${question.text}</h3>
                     ${question.options.map((option, index) => `
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="question_${question.id}" id="option_${index}" value="${index}">
+                            <input class="form-check-input" type="${inputType}" name="${inputName}" id="option_${index}" value="${index}">
                             <label class="form-check-label" for="option_${index}">
                                 ${option}
                             </label>
@@ -124,5 +129,6 @@
     }
 
     displayQuestion();
+    /*]]>*/
 </script>
 </html>

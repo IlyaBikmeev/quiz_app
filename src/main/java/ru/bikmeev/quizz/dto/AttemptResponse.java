@@ -23,5 +23,6 @@ public class AttemptResponse {
         private Long id;
         private String text;
         private List<String> options;
+        private boolean isMultipleChoice;
     }
 }

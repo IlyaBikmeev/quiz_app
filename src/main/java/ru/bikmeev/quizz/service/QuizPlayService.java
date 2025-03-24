@@ -47,7 +47,8 @@ public class QuizPlayService {
                         .map(q -> new AttemptResponse.Question(
                                 q.getId(),
                                 q.getText(),
-                                q.getOptions()
+                                q.getOptions(),
+                                q.getCorrectAnswers().size() > 1
                         )).toList())
                 .build();
     }
