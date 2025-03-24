@@ -30,14 +30,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(request -> {
-                    CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("https://mc.yandex.ru")); // Разрешаем Яндекс Метрике
-                    config.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
-                    config.setAllowedHeaders(List.of("*"));
-                    config.setAllowCredentials(true);
-                    return config;
-                }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/",
