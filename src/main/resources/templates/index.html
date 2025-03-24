@@ -5,6 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuizForge - Подготовка к экзаменам</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <style>
+        .footer-link {
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+        }
+        .footer-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        .footer-link svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.5rem;
+        }
+    </style>
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
         (function (m, e, t, r, i, k, a) {
@@ -121,28 +138,69 @@
         </div>
     </div>
 
-    <!-- Блок с популярными квизами (если есть) -->
-    <div class="mt-5">
-        <h2>Популярные области для подготовки</h2>
-        <div class="list-group">
-            <a href="/quiz/1" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                Программирование на Java
-                <span class="badge bg-primary rounded-pill">98 квизов</span>
-            </a>
-            <a href="/quiz/2" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                Spring Framework
-                <span class="badge bg-primary rounded-pill">45 квизов</span>
-            </a>
-            <a href="/quiz/3" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                Базы данных
-                <span class="badge bg-primary rounded-pill">72 квиза</span>
-            </a>
-        </div>
-        <div class="text-center mt-3">
-            <a href="/quiz" class="btn btn-outline-primary">Все категории</a>
+    <!-- Блок с планируемыми возможностями -->
+    <div class="mt-5 p-4 bg-white rounded shadow-sm">
+        <h2 class="mb-4">Скоро в QuizForge</h2>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-success text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-puzzle" viewBox="0 0 16 16">
+                            <path d="M4 0h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2Zm0 2v8h8V2H4Z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>Разбивка на части</h5>
+                        <p class="mb-0">Проходите большие квизы частями, чтобы лучше усваивать материал</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-success text-white rounded-circle p-3 me-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-code-square" viewBox="0 0 16 16">
+                            <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                            <path d="M6.854 4.646a.5.5 0 0 1 0 .708L4.207 8l2.647 2.646a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 0 1 .708 0zm2.292 0a.5.5 0 0 0 0 .708L11.793 8l-2.647 2.646a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h5>API доступ</h5>
+                        <p class="mb-0">Интегрируйте QuizForge в ваши приложения через REST API</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Footer -->
+<footer class="bg-dark text-light mt-5 py-4">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h5>Контакты</h5>
+                <p>Есть вопросы или пожелания? Свяжитесь с нами:</p>
+                <div class="d-flex gap-3">
+                    <a href="https://t.me/bikmeeff1812" class="text-light text-decoration-none d-flex align-items-center footer-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-telegram" viewBox="0 0 16 16">
+                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M8.287 5.906q-1.168.486-4.666 2.01-.567.225-.595.442c-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.294q.39.01.868-.32 3.269-2.206 3.374-2.23c.05-.012.12-.026.166.016s.042.12.037.141c-.03.129-1.227 1.241-1.846 1.817-.193.18-.33.307-.358.336a8 8 0 0 1-.188.186c-.38.366-.664.64.015 1.088.327.216.589.393.85.571.284.194.568.387.936.629q.14.092.27.187c.331.236.63.448.997.414.214-.02.435-.22.547-.82.265-1.417.786-4.486.906-5.751a1.4 1.4 0 0 0-.013-.315.34.34 0 0 0-.114-.217.53.53 0 0 0-.31-.093c-.3.005-.763.166-2.984 1.09"/>
+                        </svg>
+                        Telegram
+                    </a>
+                    <a href="mailto:i@ibikmeev.ru" class="text-light text-decoration-none d-flex align-items-center footer-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="bi bi-envelope" viewBox="0 0 16 16">
+                            <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                        </svg>
+                        Email
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-0">&copy; 2024 QuizForge. Все права защищены.</p>
+            </div>
+        </div>
+    </div>
+</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -150,7 +208,6 @@
 <script type="text/javascript">
     // Отслеживание клика по кнопке "Начать обучение"
     document.addEventListener('DOMContentLoaded', function() {
-        // Кнопка "Начать обучение"
         const startLearningBtn = document.querySelector('a[href*="/quiz"][role="button"]');
         if (startLearningBtn) {
             startLearningBtn.addEventListener('click', function() {
@@ -158,28 +215,9 @@
                 console.log('Цель: клик по кнопке начать обучение');
             });
         }
-
-        // Отслеживание кликов по популярным квизам
-        document.querySelectorAll('.list-group-item').forEach(function(item) {
-            item.addEventListener('click', function() {
-                const quizName = this.textContent.trim().split('\n')[0].trim();
-                ym(100535157, 'reachGoal', 'popular_quiz_click', {quiz_name: quizName});
-                console.log('Цель: клик по популярному квизу', quizName);
-            });
-        });
-
-        // Для всех категорий
-        const allCategoriesBtn = document.querySelector('a[href="/quiz"].btn-outline-primary');
-        if (allCategoriesBtn) {
-            allCategoriesBtn.addEventListener('click', function() {
-                ym(100535157, 'reachGoal', 'all_categories_click');
-                console.log('Цель: клик по всем категориям');
-            });
-        }
     });
 
     // Пример кода для установки UserID после авторизации
-    // Этот код нужно вызывать после успешного входа пользователя
     function setYandexMetrikaUserID(userId) {
         ym(100535157, 'setUserID', userId);
         console.log('Установлен UserID в Яндекс.Метрике:', userId);
