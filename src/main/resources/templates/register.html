@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Регистрация</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<div th:replace="~{fragments/header :: header}"></div>
 
-<div class="container mt-5">
+<main class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card">
@@ -39,99 +36,99 @@
             </div>
         </div>
     </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/auth.js}"></script>
-<script>
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const name = document.getElementById('name').value;
-        const messageContainer = document.getElementById('messageContainer');
-        
-        // Валидация формы
-        if (!email || !name) {
-            messageContainer.style.display = 'block';
-            messageContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    Все поля должны быть заполнены
-                </div>
-            `;
-            return;
-        }
-        
-        if (name.length < 3) {
-            messageContainer.style.display = 'block';
-            messageContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    Никнейм должен содержать не менее 3 символов
-                </div>
-            `;
-            return;
-        }
-        
-        // Отключаем кнопку во время запроса
-        const submitButton = this.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Регистрация...';
-        
-        fetch('/auth/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ email: email, name: name })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            messageContainer.style.display = 'block';
+    
+    <!-- Скрипт для регистрации -->
+    <script th:inline="javascript">
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            if (data.message && data.message.includes("уже существует")) {
-                // Ошибка регистрации
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const messageContainer = document.getElementById('messageContainer');
+            
+            // Валидация формы
+            if (!email || !name) {
+                messageContainer.style.display = 'block';
                 messageContainer.innerHTML = `
                     <div class="alert alert-danger">
-                        ${data.message}
+                        Все поля должны быть заполнены
+                    </div>
+                `;
+                return;
+            }
+            
+            if (name.length < 3) {
+                messageContainer.style.display = 'block';
+                messageContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Никнейм должен содержать не менее 3 символов
+                    </div>
+                `;
+                return;
+            }
+            
+            // Отключаем кнопку во время запроса
+            const submitButton = this.querySelector('button[type="submit"]');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Регистрация...';
+            
+            fetch('/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ email: email, name: name })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                messageContainer.style.display = 'block';
+                
+                if (data.message && data.message.includes("уже существует")) {
+                    // Ошибка регистрации
+                    messageContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            ${data.message}
+                        </div>
+                    `;
+                    // Восстанавливаем кнопку
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = 'Зарегистрироваться';
+                } else {
+                    // Успешная регистрация
+                    messageContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            ${data.message}
+                            <hr>
+                            <a href="/auth/verify?email=${encodeURIComponent(email)}" class="btn btn-sm btn-primary">Ввести код</a>
+                        </div>
+                    `;
+                    
+                    // Автоматически перенаправляем на страницу ввода кода
+                    setTimeout(() => {
+                        window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                messageContainer.style.display = 'block';
+                messageContainer.innerHTML = `
+                    <div class="alert alert-danger">
+                        Произошла ошибка: ${error.message}
                     </div>
                 `;
                 // Восстанавливаем кнопку
                 submitButton.disabled = false;
                 submitButton.innerHTML = 'Зарегистрироваться';
-            } else {
-                // Успешная регистрация
-                messageContainer.innerHTML = `
-                    <div class="alert alert-success">
-                        ${data.message}
-                        <hr>
-                        <a href="/auth/verify?email=${encodeURIComponent(email)}" class="btn btn-sm btn-primary">Ввести код</a>
-                    </div>
-                `;
-                
-                // Автоматически перенаправляем на страницу ввода кода
-                setTimeout(() => {
-                    window.location.href = `/auth/verify?email=${encodeURIComponent(email)}`;
-                }, 1500);
-            }
-        })
-        .catch(error => {
-            messageContainer.style.display = 'block';
-            messageContainer.innerHTML = `
-                <div class="alert alert-danger">
-                    Произошла ошибка: ${error.message}
-                </div>
-            `;
-            // Восстанавливаем кнопку
-            submitButton.disabled = false;
-            submitButton.innerHTML = 'Зарегистрироваться';
+            });
         });
-    });
-</script>
+    </script>
+</main>
+
 </body>
 </html> 
