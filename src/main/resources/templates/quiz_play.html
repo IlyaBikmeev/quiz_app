@@ -60,7 +60,8 @@
         let selectedOptions = Array.from(document.querySelectorAll('input[name="question_' + question.id + '"]:checked'));
         let alertContainer = document.getElementById('alert-container');
         let submitButton = document.getElementById('submit-button');
-        if (!selectedOptions) {
+        
+        if (selectedOptions.length === 0) {
             alertContainer.innerHTML = `<div class="alert alert-warning" role="alert">Пожалуйста, выберите вариант ответа.</div>`;
             return;
         }
