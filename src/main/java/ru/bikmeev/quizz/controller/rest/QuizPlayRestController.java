@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.bikmeev.quizz.dto.AnswerRequest;
 import ru.bikmeev.quizz.dto.AnswerResponse;
@@ -37,5 +38,12 @@ public class QuizPlayRestController {
     public ResponseEntity<AnswerResponse> answerToQuestion(@PathVariable Long attemptId,
                                                            @RequestBody AnswerRequest request) {
         return ResponseEntity.ok(quizPlayService.answer(attemptId, request));
+    }
+
+    /** Marks attempt as completed (early finish). */
+    @PostMapping("/attempts/{attemptId}/complete")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void completeAttempt(@PathVariable Long attemptId) {
+        quizPlayService.completeAttempt(attemptId);
     }
 }

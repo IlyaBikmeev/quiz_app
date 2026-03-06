@@ -200,6 +200,22 @@ public class QuizPlayService {
                 .build();
     }
 
+    /** Marks attempt as completed (early finish). Idempotent if already completed. */
+    @Transactional
+    public void completeAttempt(Long attemptId) {
+        UserEntity currentUser = authService.getCurrentUser();
+        AttemptEntity attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId)));
+        if (!attempt.getUser().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
+        }
+        if (attempt.getCompletedAt() == null) {
+            attempt.setCompletedAt(Instant.now());
+            attemptRepository.save(attempt);
+            log.info("Attempt with id {} completed early", attempt.getId());
+        }
+    }
+
     @Transactional
     public AnswerResponse answer(Long attemptId, AnswerRequest request) {
         UserEntity currentUser = authService.getCurrentUser();

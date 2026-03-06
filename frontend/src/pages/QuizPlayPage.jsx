@@ -25,6 +25,7 @@ export function QuizPlayPage() {
   const [error, setError] = useState('');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [finalTimeSeconds, setFinalTimeSeconds] = useState(null);
+  const [completing, setCompleting] = useState(false);
 
   // Always request current attempt on mount and when quizId changes (including after refresh).
   useEffect(() => {
@@ -145,6 +146,28 @@ export function QuizPlayPage() {
     setCurrentIndex(i);
     setLastResult(null);
     setSelected([]);
+  };
+
+  const handleCompleteEarly = async () => {
+    if (!attempt?.id || completing) return;
+    if (!window.confirm('Завершить тестирование досрочно? Результаты будут сохранены.')) return;
+    setError('');
+    setCompleting(true);
+    try {
+      const res = await apiFetch(`/api/v1/attempts/${attempt.id}/complete`, { method: 'POST' });
+      if (!res.ok) {
+        const text = await res.text();
+        setError(text || `Ошибка ${res.status}`);
+        setCompleting(false);
+        return;
+      }
+      setFinalTimeSeconds(elapsedSeconds);
+      setFinished(true);
+      setLastResult({});
+    } catch (err) {
+      setError(err.message || 'Ошибка завершения');
+      setCompleting(false);
+    }
   };
 
   const isReviewMode = resultsByIndex[currentIndex] != null;
@@ -347,7 +370,7 @@ export function QuizPlayPage() {
                 Вперёд
               </button>
             )}
-            <Link to={`/quizzes/${quizId}`} className="btn btn-link ms-2">Выйти</Link>
+            <button type="button" className="btn btn-link ms-2" onClick={handleCompleteEarly} disabled={completing}>{completing ? 'Завершение…' : 'Выйти'}</button>
           </div>
         </>
       ) : (
@@ -384,7 +407,7 @@ export function QuizPlayPage() {
           >
             {lastResult ? (currentIndex >= questions.length - 1 ? 'Завершить' : 'Далее') : 'Ответить'}
           </button>
-          <Link to={`/quizzes/${quizId}`} className="btn btn-link">Выйти</Link>
+          <button type="button" className="btn btn-link" onClick={handleCompleteEarly} disabled={completing}>{completing ? 'Завершение…' : 'Выйти'}</button>
         </>
       )}
     </div>
