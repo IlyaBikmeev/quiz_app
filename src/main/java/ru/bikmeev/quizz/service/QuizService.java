@@ -15,23 +15,22 @@ import ru.bikmeev.quizz.entity.UserEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import ru.bikmeev.quizz.repository.AttemptRepository;
+import ru.bikmeev.quizz.repository.AnswerRepository;
 import ru.bikmeev.quizz.repository.QuizRepository;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class QuizService {
     private final QuizRepository quizRepository;
     private final AttemptRepository attemptRepository;
+    private final AnswerRepository answerRepository;
     private final AuthService authService;
 
     public Page<QuizDto> getQuizPage(int page, int size) {
@@ -106,16 +105,36 @@ public class QuizService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Редактировать может только автор квиза");
         }
         entity.setTitle(request.getTitle() != null ? request.getTitle() : entity.getTitle());
-        entity.getQuestions().clear();
-        List<QuestionEntity> newQuestions = request.getQuestions().stream()
-                .map(q -> QuestionEntity.builder()
-                        .text(q.getText())
-                        .options(q.getOptions())
-                        .correctAnswers(q.getCorrectAnswers())
+        List<QuestionEntity> existing = entity.getQuestions();
+        List<CreateQuestionRequest> requested = request.getQuestions();
+
+        for (int i = 0; i < requested.size(); i++) {
+            CreateQuestionRequest qReq = requested.get(i);
+            if (i < existing.size()) {
+                QuestionEntity q = existing.get(i);
+                q.setText(qReq.getText());
+                q.setOptions(qReq.getOptions() != null ? qReq.getOptions() : List.of());
+                q.setCorrectAnswers(qReq.getCorrectAnswers() != null ? qReq.getCorrectAnswers() : List.of());
+            } else {
+                QuestionEntity newQuestion = QuestionEntity.builder()
+                        .text(qReq.getText())
+                        .options(qReq.getOptions())
+                        .correctAnswers(qReq.getCorrectAnswers())
                         .quiz(entity)
-                        .build())
-                .toList();
-        entity.getQuestions().addAll(newQuestions);
+                        .build();
+                entity.getQuestions().add(newQuestion);
+            }
+        }
+
+        for (int i = existing.size() - 1; i >= requested.size(); i--) {
+            QuestionEntity question = existing.get(i);
+            if (answerRepository.countByQuestionId(question.getId()) > 0) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT,
+                        "Нельзя удалить вопрос №" + (i + 1) + ": на него уже отвечали.");
+            }
+            entity.getQuestions().remove(i);
+        }
+
         QuizEntity saved = quizRepository.save(entity);
         return toDto(saved);
     }

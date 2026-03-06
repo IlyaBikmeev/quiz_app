@@ -14,4 +14,6 @@ public interface AnswerRepository extends JpaRepository<AnswerEntity, Long> {
 
     @Query("SELECT COUNT(a) FROM AnswerEntity a WHERE a.attempt.id = :attemptId")
     long countByAttemptId(@Param("attemptId") Long attemptId);
+
+    long countByQuestionId(Long questionId);
 }
