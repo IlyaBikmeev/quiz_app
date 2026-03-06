@@ -32,6 +32,11 @@ public class QuizPlayService {
     private final AnswerRepository answerRepository;
     private final AuthService authService;
 
+    /** Multiple choice = user can select several options; derived from question having more than one correct answer. */
+    private static boolean isMultipleChoice(QuestionEntity q) {
+        return q.getCorrectAnswers() != null && q.getCorrectAnswers().size() > 1;
+    }
+
     @Transactional
     public AttemptResponse createAttempt(Long quizId) {
         UserEntity currentUser = authService.getCurrentUser();
@@ -57,7 +62,7 @@ public class QuizPlayService {
                                 q.getId(),
                                 q.getText(),
                                 q.getOptions(),
-                                q.getCorrectAnswers().size() > 1,
+                                isMultipleChoice(q),
                                 null,
                                 null,
                                 null
@@ -91,7 +96,7 @@ public class QuizPlayService {
                     q.getId(),
                     q.getText(),
                     q.getOptions(),
-                    q.getCorrectAnswers().size() > 1,
+                    isMultipleChoice(q),
                     null,
                     null,
                     null
@@ -152,7 +157,7 @@ public class QuizPlayService {
                     q.getId(),
                     q.getText(),
                     q.getOptions(),
-                    q.getCorrectAnswers().size() > 1,
+                    isMultipleChoice(q),
                     null,
                     null,
                     null

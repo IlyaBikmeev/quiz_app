@@ -134,7 +134,7 @@ export function QuizPlayPage() {
   };
 
   const toggleOption = (idx) => {
-    if (question?.isMultipleChoice) {
+    if (question?.multipleChoice ?? question?.isMultipleChoice) {
       setSelected((s) => (s.includes(idx) ? s.filter((i) => i !== idx) : [...s, idx]));
     } else {
       setSelected([idx]);
@@ -230,7 +230,7 @@ export function QuizPlayPage() {
                 return (
                   <div key={idx} className="form-check">
                     <input
-                      type={reviewQuestion.isMultipleChoice ? 'checkbox' : 'radio'}
+                      type={reviewQuestion.multipleChoice ?? reviewQuestion.isMultipleChoice ? 'checkbox' : 'radio'}
                       className="form-check-input"
                       disabled
                       checked={isSelected}
@@ -320,7 +320,7 @@ export function QuizPlayPage() {
               return (
                 <div key={idx} className="form-check">
                   <input
-                    type={question.isMultipleChoice ? 'checkbox' : 'radio'}
+                    type={question.multipleChoice ?? question.isMultipleChoice ? 'checkbox' : 'radio'}
                     className="form-check-input"
                     disabled
                     checked={isSelected}
@@ -356,7 +356,7 @@ export function QuizPlayPage() {
             {(question.options || []).map((opt, idx) => (
               <div key={idx} className="form-check">
                 <input
-                  type={question.isMultipleChoice ? 'checkbox' : 'radio'}
+                  type={question.multipleChoice ?? question.isMultipleChoice ? 'checkbox' : 'radio'}
                   className="form-check-input"
                   name="option"
                   id={`opt-${idx}`}
