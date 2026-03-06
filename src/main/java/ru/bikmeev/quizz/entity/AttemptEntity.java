@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,11 @@ public class AttemptEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private boolean completed = false;
+    @Column(name = "started_at", nullable = false)
+    private Instant startedAt;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
 
     @ManyToOne
     @JoinColumn(name = "quiz_id", referencedColumnName = "id")

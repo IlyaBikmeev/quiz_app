@@ -1,10 +1,13 @@
 package ru.bikmeev.quizz.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -14,6 +17,12 @@ import java.util.List;
 public class AttemptResponse {
     private Long id;
     private Long quizId;
+    /** Start time of the attempt (for timer: elapsed = now - startedAt). */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant startedAt;
+    /** When set, attempt is completed. */
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    private Instant completedAt;
     private List<Question> questions;
     /** For GET current: correct/incorrect per question index; null for unanswered. */
     private List<Boolean> progress;

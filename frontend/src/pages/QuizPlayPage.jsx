@@ -24,7 +24,6 @@ export function QuizPlayPage() {
   const [error, setError] = useState('');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [finalTimeSeconds, setFinalTimeSeconds] = useState(null);
-  const startedAtRef = useRef(null);
 
   // Always request current attempt on mount and when quizId changes (including after refresh).
   useEffect(() => {
@@ -63,21 +62,15 @@ export function QuizPlayPage() {
     return () => { cancelled = true; };
   }, [quizId]);
 
+  // Timer: elapsed = now - attempt.startedAt from server (so refresh doesn't break the counter).
   useEffect(() => {
-    if (attempt && startedAtRef.current === null) {
-      startedAtRef.current = Date.now();
-    }
-  }, [attempt]);
-
-  useEffect(() => {
-    if (!attempt || finished) return;
-    const id = setInterval(() => {
-      if (startedAtRef.current) {
-        setElapsedSeconds(Math.floor((Date.now() - startedAtRef.current) / 1000));
-      }
-    }, 1000);
+    if (!attempt?.startedAt || finished) return;
+    const startMs = new Date(attempt.startedAt).getTime();
+    const tick = () => setElapsedSeconds(Math.floor((Date.now() - startMs) / 1000));
+    tick();
+    const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [attempt, finished]);
+  }, [attempt?.startedAt, finished]);
 
   if (loadingAttempt) return <div className="text-center">Загрузка…</div>;
   if (loadError) return <div className="text-center"><div className="alert alert-danger">{loadError}</div><Link to={`/quizzes/${quizId}`}>Вернуться к квизу</Link></div>;
@@ -121,7 +114,8 @@ export function QuizPlayPage() {
         return next;
       });
       if (currentIndex >= questions.length - 1) {
-        setFinalTimeSeconds(Math.floor((Date.now() - (startedAtRef.current || Date.now())) / 1000));
+        const startMs = attempt.startedAt ? new Date(attempt.startedAt).getTime() : Date.now();
+        setFinalTimeSeconds(Math.floor((Date.now() - startMs) / 1000));
         setFinished(true);
       }
     } catch (err) {
@@ -141,7 +135,12 @@ export function QuizPlayPage() {
     const finalCorrectCount = resultsByIndex.filter((r) => r === true).length;
     const finalTotalCount = questions.length;
     const finalPercent = finalTotalCount ? Math.round((finalCorrectCount / finalTotalCount) * 100) : 0;
-    const displayTime = finalTimeSeconds != null ? formatTime(finalTimeSeconds) : formatTime(elapsedSeconds);
+    let displayTime = formatTime(elapsedSeconds);
+    if (finalTimeSeconds != null) displayTime = formatTime(finalTimeSeconds);
+    else if (attempt?.completedAt && attempt?.startedAt) {
+      const sec = Math.floor((new Date(attempt.completedAt) - new Date(attempt.startedAt)) / 1000);
+      displayTime = formatTime(sec);
+    }
     return (
       <div>
         <h2>Результат</h2>

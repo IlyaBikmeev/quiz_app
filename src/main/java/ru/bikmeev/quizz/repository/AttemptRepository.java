@@ -10,5 +10,6 @@ public interface AttemptRepository extends JpaRepository<AttemptEntity, Long> {
 
     List<AttemptEntity> findByQuiz_Id(Long quizId);
 
-    Optional<AttemptEntity> findFirstByQuiz_IdAndUser_IdAndCompletedOrderByIdDesc(Long quizId, Long userId, boolean completed);
+    /** Active attempt = not completed (completedAt is null). */
+    Optional<AttemptEntity> findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(Long quizId, Long userId);
 }

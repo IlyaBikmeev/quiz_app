@@ -18,6 +18,7 @@ import ru.bikmeev.quizz.repository.AnswerRepository;
 import ru.bikmeev.quizz.repository.AttemptRepository;
 import ru.bikmeev.quizz.repository.QuizRepository;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class QuizPlayService {
         AttemptEntity attempt = new AttemptEntity();
         attempt.setQuiz(quiz);
         attempt.setUser(currentUser);
+        attempt.setStartedAt(Instant.now());
 
         AttemptEntity savedAttempt = attemptRepository.save(attempt);
         int size = quiz.getQuestions().size();
@@ -47,6 +49,8 @@ public class QuizPlayService {
         return AttemptResponse.builder()
                 .id(savedAttempt.getId())
                 .quizId(quizId)
+                .startedAt(savedAttempt.getStartedAt())
+                .completedAt(savedAttempt.getCompletedAt())
                 .questions(quiz.getQuestions()
                         .stream()
                         .map(q -> new AttemptResponse.Question(
@@ -62,8 +66,8 @@ public class QuizPlayService {
     /** Returns current active attempt (with progress) if exists, otherwise creates a new one. Single entry point for "start or resume". */
     @Transactional
     public AttemptResponse startOrResumeAttempt(Long quizId) {
-        Optional<AttemptEntity> opt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedOrderByIdDesc(
-                quizId, authService.getCurrentUser().getId(), false);
+        Optional<AttemptEntity> opt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(
+                quizId, authService.getCurrentUser().getId());
         if (opt.isPresent()) {
             return getCurrentAttempt(quizId);
         }
@@ -73,8 +77,8 @@ public class QuizPlayService {
     @Transactional(readOnly = true)
     public AttemptResponse getCurrentAttempt(Long quizId) {
         UserEntity currentUser = authService.getCurrentUser();
-        AttemptEntity attempt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedOrderByIdDesc(
-                quizId, currentUser.getId(), false)
+        AttemptEntity attempt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(
+                quizId, currentUser.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No active attempt for this quiz"));
         QuizEntity quiz = attempt.getQuiz();
         List<QuestionEntity> quizQuestions = quiz.getQuestions();
@@ -106,6 +110,8 @@ public class QuizPlayService {
         return AttemptResponse.builder()
                 .id(attempt.getId())
                 .quizId(quizId)
+                .startedAt(attempt.getStartedAt())
+                .completedAt(attempt.getCompletedAt())
                 .questions(questions)
                 .progress(progress)
                 .build();
@@ -148,7 +154,7 @@ public class QuizPlayService {
         log.info("Answer with id {} has been successfully saved: ", savedAnswer.getId());
 
         if (question.equals(quiz.getQuestions().get(quiz.getQuestions().size() - 1))) {
-            attempt.setCompleted(true);
+            attempt.setCompletedAt(Instant.now());
             attemptRepository.save(attempt);
             log.info("Attempt with id {} has been successfully completed!", attempt.getId());
         }
