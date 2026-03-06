@@ -8,9 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import ru.bikmeev.quizz.dto.*;
+import ru.bikmeev.quizz.entity.AttemptEntity;
 import ru.bikmeev.quizz.entity.QuestionEntity;
 import ru.bikmeev.quizz.entity.QuizEntity;
 import ru.bikmeev.quizz.entity.UserEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+import ru.bikmeev.quizz.repository.AttemptRepository;
 import ru.bikmeev.quizz.repository.QuizRepository;
 
 import java.io.BufferedReader;
@@ -27,6 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class QuizService {
     private final QuizRepository quizRepository;
+    private final AttemptRepository attemptRepository;
     private final AuthService authService;
 
     public Page<QuizDto> getQuizPage(int page, int size) {
@@ -54,9 +59,87 @@ public class QuizService {
                 .build();
     }
 
+    private QuestionDto mapQuestionDtoWithoutCorrect(QuestionEntity questionEntity) {
+        return QuestionDto.builder()
+                .id(questionEntity.getId())
+                .text(questionEntity.getText())
+                .options(new ArrayList<>(questionEntity.getOptions()))
+                .correctAnswers(null)
+                .build();
+    }
+
+    private QuizDto toDtoForDisplay(QuizEntity entity, boolean canEdit) {
+        return QuizDto.builder()
+                .id(entity.getId())
+                .title(entity.getTitle())
+                .creatorName(entity.getCreator() != null ? entity.getCreator().getName() : "Неизвестный")
+                .questions(entity.getQuestions()
+                        .stream()
+                        .map(this::mapQuestionDtoWithoutCorrect).toList())
+                .canEdit(canEdit)
+                .build();
+    }
+
     public QuizDto getQuiz(long id) {
         return quizRepository.findById(id)
                 .map(this::toDto).orElseThrow();
+    }
+
+    public QuizDto getQuizForDisplay(long id) {
+        UserEntity currentUser = authService.getCurrentUser();
+        QuizEntity entity = quizRepository.findById(id).orElseThrow();
+        boolean canEdit = currentUser != null && entity.getCreator() != null
+                && entity.getCreator().getId().equals(currentUser.getId());
+        if (canEdit) {
+            QuizDto dto = toDto(entity);
+            dto.setCanEdit(true);
+            return dto;
+        }
+        return toDtoForDisplay(entity, false);
+    }
+
+    @Transactional
+    public QuizDto update(long id, CreateQuizRequest request) {
+        UserEntity currentUser = authService.getCurrentUser();
+        QuizEntity entity = quizRepository.findById(id).orElseThrow();
+        if (entity.getCreator() == null || !entity.getCreator().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Редактировать может только автор квиза");
+        }
+        entity.setTitle(request.getTitle() != null ? request.getTitle() : entity.getTitle());
+        entity.getQuestions().clear();
+        List<QuestionEntity> newQuestions = request.getQuestions().stream()
+                .map(q -> QuestionEntity.builder()
+                        .text(q.getText())
+                        .options(q.getOptions())
+                        .correctAnswers(q.getCorrectAnswers())
+                        .quiz(entity)
+                        .build())
+                .toList();
+        entity.getQuestions().addAll(newQuestions);
+        QuizEntity saved = quizRepository.save(entity);
+        return toDto(saved);
+    }
+
+    @Transactional
+    public void delete(long id) {
+        UserEntity currentUser = authService.getCurrentUser();
+        QuizEntity entity = quizRepository.findById(id).orElseThrow();
+        if (entity.getCreator() == null || !entity.getCreator().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Удалить может только автор квиза");
+        }
+        List<AttemptEntity> attempts = attemptRepository.findByQuiz_Id(id);
+        attemptRepository.deleteAll(attempts);
+        quizRepository.delete(entity);
+    }
+
+    public Page<QuizDto> getQuizPageForDisplay(int page, int size) {
+        UserEntity currentUser = authService.getCurrentUser();
+        return quizRepository.findAll(PageRequest.of(page, size))
+                .map(entity -> {
+                    boolean canEdit = currentUser != null && entity.getCreator() != null
+                            && entity.getCreator().getId().equals(currentUser.getId());
+                    return toDtoForDisplay(entity, canEdit);
+                });
     }
 
     @Transactional
@@ -81,6 +164,7 @@ public class QuizService {
         QuizEntity savedQuiz = quizRepository.save(quizToSave);
 
         return QuizResponse.builder()
+                .id(savedQuiz.getId())
                 .title(savedQuiz.getTitle())
                 .creatorName(savedQuiz.getCreator().getName())
                 .questions(savedQuiz.getQuestions().stream()
@@ -95,7 +179,7 @@ public class QuizService {
 
     @Transactional
     @SneakyThrows
-    public void importQuizFromFile(MultipartFile file) {
+    public long importQuizFromFile(MultipartFile file) {
         UserEntity currentUser = authService.getCurrentUser();
         
         String content = new String(file.getBytes(), StandardCharsets.UTF_8);
@@ -106,7 +190,8 @@ public class QuizService {
         quiz.setCreator(currentUser);
         quiz.setQuestions(questions);
         questions.forEach(question -> question.setQuiz(quiz));
-        quizRepository.save(quiz);
+        QuizEntity saved = quizRepository.save(quiz);
+        return saved.getId();
     }
 
     private List<QuestionEntity> parseQuestions(String content) {

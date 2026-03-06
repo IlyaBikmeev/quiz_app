@@ -16,4 +16,6 @@ public class QuizDto {
     private String title;
     private String creatorName;
     private List<QuestionDto> questions;
+    /** true, если текущий пользователь — автор квиза (для отображения кнопки «Редактировать») */
+    private Boolean canEdit;
 }

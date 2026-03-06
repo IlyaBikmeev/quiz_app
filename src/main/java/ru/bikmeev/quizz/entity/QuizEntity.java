@@ -25,6 +25,6 @@ public class QuizEntity {
     @JoinColumn(name = "creator_id", referencedColumnName = "id")
     private UserEntity creator;
 
-    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionEntity> questions;
 }

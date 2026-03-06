@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.bikmeev.quizz.config.JwtService;
 import ru.bikmeev.quizz.dto.AuthResponse;
@@ -21,69 +20,47 @@ import ru.bikmeev.quizz.service.AuthService;
 import java.util.HashMap;
 import java.util.Map;
 
-@Controller
+@RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
     private final JwtService jwtService;
-    
-    @GetMapping("/login")
-    public String getLoginPage() {
-        return "login";
-    }
-    
-    @GetMapping("/register")
-    public String getRegisterPage() {
-        return "register";
-    }
-    
-    @GetMapping("/verify")
-    public String getVerifyPage() {
-        return "verify";
-    }
-    
+
     @PostMapping("/register")
-    @ResponseBody
     public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) throws MessagingException {
         return ResponseEntity.ok(authService.register(request));
     }
-    
+
     @PostMapping("/login")
-    @ResponseBody
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) throws MessagingException {
         return ResponseEntity.ok(authService.generateOtp(request));
     }
-    
+
     @PostMapping("/verify")
-    @ResponseBody
     public ResponseEntity<AuthResponse> verifyOtp(@RequestBody VerifyOtpRequest request) {
         return ResponseEntity.ok(authService.verifyOtp(request));
     }
-    
+
     @GetMapping("/validate-token")
-    @ResponseBody
     public ResponseEntity<Map<String, Boolean>> validateToken(Authentication authentication) {
         Map<String, Boolean> response = new HashMap<>();
         boolean isValid = authentication != null && authentication.isAuthenticated();
         response.put("valid", isValid);
         return ResponseEntity.ok(response);
     }
-    
+
     @GetMapping("/logout")
-    public String logout(HttpServletResponse response) {
-        // Удаляем куки с токеном
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         Cookie cookie = new Cookie("authToken", null);
         cookie.setMaxAge(0);
         cookie.setPath("/");
         response.addCookie(cookie);
-        
-        return "redirect:/auth/login";
+        return ResponseEntity.noContent().build();
     }
-    
+
     @GetMapping("/user-info")
-    @ResponseBody
     public ResponseEntity<Map<String, String>> getUserInfo() {
         Map<String, String> userInfo = new HashMap<>();
         try {
@@ -97,9 +74,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(userInfo);
         }
     }
-    
+
     @GetMapping("/token-debug")
-    @ResponseBody
     public ResponseEntity<Map<String, Object>> debugToken(
             @RequestHeader(value = "Authorization", required = false) String authHeader,
             @CookieValue(value = "authToken", required = false) String cookieToken,
