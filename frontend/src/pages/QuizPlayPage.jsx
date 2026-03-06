@@ -21,6 +21,7 @@ export function QuizPlayPage() {
   const [lastResult, setLastResult] = useState(null);
   const [resultsByIndex, setResultsByIndex] = useState([]);
   const [finished, setFinished] = useState(false);
+  const [reviewAfterFinish, setReviewAfterFinish] = useState(false);
   const [error, setError] = useState('');
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [finalTimeSeconds, setFinalTimeSeconds] = useState(null);
@@ -107,12 +108,21 @@ export function QuizPlayPage() {
         }),
       });
       setLastResult(res);
+      const sortedAnswers = answers.sort((a, b) => a - b);
       setResultsByIndex((prev) => {
         const next = [...prev];
         while (next.length <= currentIndex) next.push(null);
         next[currentIndex] = res.correct;
         return next;
       });
+      setAttempt((prev) => ({
+        ...prev,
+        questions: (prev.questions || []).map((q, idx) =>
+          idx === currentIndex
+            ? { ...q, selectedAnswers: sortedAnswers, correctAnswers: res.correctAnswers || [], correct: res.correct }
+            : q
+        ),
+      }));
       if (currentIndex >= questions.length - 1) {
         const startMs = attempt.startedAt ? new Date(attempt.startedAt).getTime() : Date.now();
         setFinalTimeSeconds(Math.floor((Date.now() - startMs) / 1000));
@@ -131,7 +141,15 @@ export function QuizPlayPage() {
     }
   };
 
-  if (finished && lastResult) {
+  const goToQuestion = (i) => {
+    setCurrentIndex(i);
+    setLastResult(null);
+    setSelected([]);
+  };
+
+  const isReviewMode = resultsByIndex[currentIndex] != null;
+
+  if (finished && lastResult && !reviewAfterFinish) {
     const finalCorrectCount = resultsByIndex.filter((r) => r === true).length;
     const finalTotalCount = questions.length;
     const finalPercent = finalTotalCount ? Math.round((finalCorrectCount / finalTotalCount) * 100) : 0;
@@ -141,13 +159,107 @@ export function QuizPlayPage() {
       const sec = Math.floor((new Date(attempt.completedAt) - new Date(attempt.startedAt)) / 1000);
       displayTime = formatTime(sec);
     }
+    const handleShowReview = () => {
+      apiJson(`/api/v1/attempts/${attempt.id}`)
+        .then((data) => {
+          setAttempt(data);
+          setReviewAfterFinish(true);
+          setCurrentIndex(0);
+        })
+        .catch((err) => setError(err.message || 'Ошибка загрузки'));
+    };
     return (
       <div>
         <h2>Результат</h2>
         <p>Правильных ответов: {finalCorrectCount} из {finalTotalCount} ({finalPercent}%)</p>
         <p className="text-muted">Время: {displayTime}</p>
+        <button type="button" className="btn btn-outline-primary me-2" onClick={handleShowReview}>
+          Посмотреть ответы
+        </button>
         <Link to={`/quizzes/${quizId}`} className="btn btn-primary">К деталям квиза</Link>
         <Link to="/quizzes" className="btn btn-secondary ms-2">К списку квизов</Link>
+      </div>
+    );
+  }
+
+  if (finished && reviewAfterFinish) {
+    const reviewProgress = attempt.progress || [];
+    const reviewQuestion = questions[currentIndex];
+    const reviewSelected = reviewQuestion?.selectedAnswers ?? [];
+    const reviewCorrectAnswers = reviewQuestion?.correctAnswers ?? [];
+    const reviewCorrect = reviewQuestion?.correct;
+    return (
+      <div>
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
+          <div className="d-flex flex-wrap gap-1 align-items-center">
+            {questions.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                className={`d-inline-block rounded border text-center ${i === currentIndex ? 'border-primary border-2' : ''}`}
+                style={{
+                  width: 28,
+                  height: 28,
+                  lineHeight: '26px',
+                  fontSize: 12,
+                  backgroundColor: reviewProgress[i] === true ? 'var(--bs-success)' : reviewProgress[i] === false ? 'var(--bs-danger)' : 'var(--bs-secondary-bg)',
+                  color: reviewProgress[i] != null ? 'white' : 'inherit',
+                }}
+                onClick={() => goToQuestion(i)}
+                title={`Вопрос ${i + 1}`}
+              >
+                {i + 1}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="btn btn-outline-secondary btn-sm" onClick={() => setReviewAfterFinish(false)}>
+            К результату
+          </button>
+        </div>
+        {reviewQuestion && (
+          <>
+            <p className="text-muted">Вопрос {currentIndex + 1} из {questions.length}</p>
+            <h4 className="mb-3">{reviewQuestion.text}</h4>
+            <div className={`alert ${reviewCorrect ? 'alert-success' : 'alert-danger'} mb-3`}>
+              {reviewCorrect ? 'Верно' : 'Неправильно'}
+            </div>
+            <div className="mb-3">
+              {(reviewQuestion.options || []).map((opt, idx) => {
+                const isSelected = reviewSelected.includes(idx);
+                const isCorrectOpt = reviewCorrectAnswers.includes(idx);
+                return (
+                  <div key={idx} className="form-check">
+                    <input
+                      type={reviewQuestion.isMultipleChoice ? 'checkbox' : 'radio'}
+                      className="form-check-input"
+                      disabled
+                      checked={isSelected}
+                      readOnly
+                    />
+                    <label className="form-check-label">
+                      {opt}
+                      {isSelected && <span className="text-primary ms-1">(ваш ответ)</span>}
+                      {isCorrectOpt && !isSelected && <span className="text-success ms-1">(правильный ответ)</span>}
+                      {isCorrectOpt && isSelected && <span className="text-success ms-1">(правильный ответ)</span>}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="d-flex gap-2">
+              {currentIndex > 0 && (
+                <button type="button" className="btn btn-outline-primary" onClick={() => goToQuestion(currentIndex - 1)}>
+                  Назад
+                </button>
+              )}
+              {currentIndex < questions.length - 1 ? (
+                <button type="button" className="btn btn-primary" onClick={() => goToQuestion(currentIndex + 1)}>
+                  Вперёд
+                </button>
+              ) : null}
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -158,13 +270,18 @@ export function QuizPlayPage() {
   const correctCount = resultsByIndex.filter((r) => r === true).length;
   const percent = totalCount ? Math.round((correctCount / totalCount) * 100) : 0;
 
+  const reviewSelected = question?.selectedAnswers ?? [];
+  const reviewCorrectAnswers = question?.correctAnswers ?? [];
+  const reviewCorrect = question?.correct;
+
   return (
     <div>
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
         <div className="d-flex flex-wrap gap-1 align-items-center">
           {questions.map((_, i) => (
-            <span
+            <button
               key={i}
+              type="button"
               className={`d-inline-block rounded border text-center ${i === currentIndex ? 'border-primary border-2' : ''}`}
               style={{
                 width: 28,
@@ -174,10 +291,11 @@ export function QuizPlayPage() {
                 backgroundColor: resultsByIndex[i] === true ? 'var(--bs-success)' : resultsByIndex[i] === false ? 'var(--bs-danger)' : 'var(--bs-secondary-bg)',
                 color: resultsByIndex[i] != null ? 'white' : 'inherit',
               }}
+              onClick={() => goToQuestion(i)}
               title={`Вопрос ${i + 1}${resultsByIndex[i] === true ? ' — верно' : resultsByIndex[i] === false ? ' — неверно' : ''}`}
             >
               {i + 1}
-            </span>
+            </button>
           ))}
         </div>
         <div className="d-flex align-items-center gap-3">
@@ -189,39 +307,86 @@ export function QuizPlayPage() {
       </div>
       <p className="text-muted">Вопрос {currentIndex + 1} из {questions.length}</p>
       <h4 className="mb-3">{question.text}</h4>
-      <div className="mb-3">
-        {(question.options || []).map((opt, idx) => (
-          <div key={idx} className="form-check">
-            <input
-              type={question.isMultipleChoice ? 'checkbox' : 'radio'}
-              className="form-check-input"
-              name="option"
-              id={`opt-${idx}`}
-              checked={selected.includes(idx)}
-              onChange={() => toggleOption(idx)}
-            />
-            <label className="form-check-label" htmlFor={`opt-${idx}`}>{opt}</label>
+
+      {isReviewMode ? (
+        <>
+          <div className={`alert ${reviewCorrect ? 'alert-success' : 'alert-danger'} mb-3`}>
+            {reviewCorrect ? 'Верно' : 'Неправильно'}
           </div>
-        ))}
-      </div>
-      {lastResult && (
-        <div className={`alert ${lastResult.correct ? 'alert-success' : 'alert-warning'}`}>
-          {lastResult.correct ? 'Верно!' : 'Неправильно.'}
-          {lastResult.correctAnswers?.length > 0 && (
-            <span> Правильные варианты: {lastResult.correctAnswers.map((i) => (question.options || [])[i]).filter(Boolean).join(', ')}</span>
+          <div className="mb-3">
+            {(question.options || []).map((opt, idx) => {
+              const isSelected = reviewSelected.includes(idx);
+              const isCorrectOpt = reviewCorrectAnswers.includes(idx);
+              return (
+                <div key={idx} className="form-check">
+                  <input
+                    type={question.isMultipleChoice ? 'checkbox' : 'radio'}
+                    className="form-check-input"
+                    disabled
+                    checked={isSelected}
+                    readOnly
+                  />
+                  <label className="form-check-label">
+                    {opt}
+                    {isSelected && <span className="text-primary ms-1">(ваш ответ)</span>}
+                    {isCorrectOpt && !isSelected && <span className="text-success ms-1">(правильный ответ)</span>}
+                    {isCorrectOpt && isSelected && <span className="text-success ms-1">(правильный ответ)</span>}
+                  </label>
+                </div>
+              );
+            })}
+          </div>
+          <div className="d-flex gap-2 align-items-center">
+            {currentIndex > 0 && (
+              <button type="button" className="btn btn-outline-primary" onClick={() => goToQuestion(currentIndex - 1)}>
+                Назад
+              </button>
+            )}
+            {currentIndex < questions.length - 1 && (
+              <button type="button" className="btn btn-primary" onClick={() => goToQuestion(currentIndex + 1)}>
+                Вперёд
+              </button>
+            )}
+            <Link to={`/quizzes/${quizId}`} className="btn btn-link ms-2">Выйти</Link>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="mb-3">
+            {(question.options || []).map((opt, idx) => (
+              <div key={idx} className="form-check">
+                <input
+                  type={question.isMultipleChoice ? 'checkbox' : 'radio'}
+                  className="form-check-input"
+                  name="option"
+                  id={`opt-${idx}`}
+                  checked={selected.includes(idx)}
+                  onChange={() => toggleOption(idx)}
+                />
+                <label className="form-check-label" htmlFor={`opt-${idx}`}>{opt}</label>
+              </div>
+            ))}
+          </div>
+          {lastResult && (
+            <div className={`alert ${lastResult.correct ? 'alert-success' : 'alert-warning'}`}>
+              {lastResult.correct ? 'Верно!' : 'Неправильно.'}
+              {lastResult.correctAnswers?.length > 0 && (
+                <span> Правильные варианты: {lastResult.correctAnswers.map((i) => (question.options || [])[i]).filter(Boolean).join(', ')}</span>
+              )}
+            </div>
           )}
-        </div>
+          {error && <div className="alert alert-danger">{error}</div>}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleSubmitAnswer}
+            disabled={!lastResult && selected.length === 0}
+          >
+            {lastResult ? (currentIndex >= questions.length - 1 ? 'Завершить' : 'Далее') : 'Ответить'}
+          </button>
+          <Link to={`/quizzes/${quizId}`} className="btn btn-link">Выйти</Link>
+        </>
       )}
-      {error && <div className="alert alert-danger">{error}</div>}
-      <button
-        type="button"
-        className="btn btn-primary"
-        onClick={handleSubmitAnswer}
-        disabled={!lastResult && selected.length === 0}
-      >
-        {lastResult ? (currentIndex >= questions.length - 1 ? 'Завершить' : 'Далее') : 'Ответить'}
-      </button>
-      <Link to={`/quizzes/${quizId}`} className="btn btn-link">Выйти</Link>
     </div>
   );
 }

@@ -35,5 +35,11 @@ public class AttemptResponse {
         private String text;
         private List<String> options;
         private boolean isMultipleChoice;
+        /** Filled for answered questions: user's selected option indices. */
+        private List<Integer> selectedAnswers;
+        /** Filled for answered questions: correct option indices. */
+        private List<Integer> correctAnswers;
+        /** Filled for answered questions: whether the answer was correct. */
+        private Boolean correct;
     }
 }

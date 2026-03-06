@@ -27,6 +27,12 @@ public class QuizPlayRestController {
         return ResponseEntity.ok(quizPlayService.startOrResumeAttempt(quizId));
     }
 
+    /** Returns attempt with full review data (for owner). Used for "Посмотреть ответы" after finish and for resuming. */
+    @GetMapping("/attempts/{attemptId}")
+    public ResponseEntity<AttemptResponse> getAttemptForReview(@PathVariable Long attemptId) {
+        return ResponseEntity.ok(quizPlayService.getAttemptForReview(attemptId));
+    }
+
     @PostMapping("/attempts/{attemptId}/answer")
     public ResponseEntity<AnswerResponse> answerToQuestion(@PathVariable Long attemptId,
                                                            @RequestBody AnswerRequest request) {

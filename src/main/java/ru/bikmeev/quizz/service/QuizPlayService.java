@@ -57,7 +57,10 @@ public class QuizPlayService {
                                 q.getId(),
                                 q.getText(),
                                 q.getOptions(),
-                                q.getCorrectAnswers().size() > 1
+                                q.getCorrectAnswers().size() > 1,
+                                null,
+                                null,
+                                null
                         )).toList())
                 .progress(emptyProgress)
                 .build();
@@ -82,13 +85,18 @@ public class QuizPlayService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No active attempt for this quiz"));
         QuizEntity quiz = attempt.getQuiz();
         List<QuestionEntity> quizQuestions = quiz.getQuestions();
-        List<AttemptResponse.Question> questions = quizQuestions.stream()
-                .map(q -> new AttemptResponse.Question(
-                        q.getId(),
-                        q.getText(),
-                        q.getOptions(),
-                        q.getCorrectAnswers().size() > 1
-                )).toList();
+        List<AttemptResponse.Question> questions = new ArrayList<>();
+        for (QuestionEntity q : quizQuestions) {
+            questions.add(new AttemptResponse.Question(
+                    q.getId(),
+                    q.getText(),
+                    q.getOptions(),
+                    q.getCorrectAnswers().size() > 1,
+                    null,
+                    null,
+                    null
+            ));
+        }
         List<Boolean> progress = new ArrayList<>();
         for (int i = 0; i < quizQuestions.size(); i++) {
             progress.add(null);
@@ -103,6 +111,76 @@ public class QuizPlayService {
             for (int i = 0; i < quizQuestions.size(); i++) {
                 if (quizQuestions.get(i).getId().equals(q.getId())) {
                     progress.set(i, correct);
+                    questions.set(i, new AttemptResponse.Question(
+                            questions.get(i).getId(),
+                            questions.get(i).getText(),
+                            questions.get(i).getOptions(),
+                            questions.get(i).isMultipleChoice(),
+                            selectedSorted,
+                            correctSorted,
+                            correct
+                    ));
+                    break;
+                }
+            }
+        }
+        return AttemptResponse.builder()
+                .id(attempt.getId())
+                .quizId(quizId)
+                .startedAt(attempt.getStartedAt())
+                .completedAt(attempt.getCompletedAt())
+                .questions(questions)
+                .progress(progress)
+                .build();
+    }
+
+    /** Returns attempt by id with full review data (selectedAnswers, correctAnswers, correct per question). For owner only. */
+    @Transactional(readOnly = true)
+    public AttemptResponse getAttemptForReview(Long attemptId) {
+        UserEntity currentUser = authService.getCurrentUser();
+        AttemptEntity attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId)));
+        if (!attempt.getUser().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
+        }
+        Long quizId = attempt.getQuiz().getId();
+        QuizEntity quiz = attempt.getQuiz();
+        List<QuestionEntity> quizQuestions = quiz.getQuestions();
+        List<AttemptResponse.Question> questions = new ArrayList<>();
+        for (QuestionEntity q : quizQuestions) {
+            questions.add(new AttemptResponse.Question(
+                    q.getId(),
+                    q.getText(),
+                    q.getOptions(),
+                    q.getCorrectAnswers().size() > 1,
+                    null,
+                    null,
+                    null
+            ));
+        }
+        List<Boolean> progress = new ArrayList<>();
+        for (int i = 0; i < quizQuestions.size(); i++) {
+            progress.add(null);
+        }
+        List<AnswerEntity> answers = answerRepository.findByAttemptIdWithQuestion(attempt.getId());
+        for (AnswerEntity a : answers) {
+            QuestionEntity q = a.getQuestion();
+            if (q == null) continue;
+            List<Integer> correctSorted = (q.getCorrectAnswers() == null ? List.<Integer>of() : new ArrayList<>(q.getCorrectAnswers())).stream().sorted().toList();
+            List<Integer> selectedSorted = (a.getSelectedAnswers() == null ? List.<Integer>of() : new ArrayList<>(a.getSelectedAnswers())).stream().sorted().toList();
+            boolean correct = correctSorted.equals(selectedSorted);
+            for (int i = 0; i < quizQuestions.size(); i++) {
+                if (quizQuestions.get(i).getId().equals(q.getId())) {
+                    progress.set(i, correct);
+                    questions.set(i, new AttemptResponse.Question(
+                            questions.get(i).getId(),
+                            questions.get(i).getText(),
+                            questions.get(i).getOptions(),
+                            questions.get(i).isMultipleChoice(),
+                            selectedSorted,
+                            correctSorted,
+                            correct
+                    ));
                     break;
                 }
             }
