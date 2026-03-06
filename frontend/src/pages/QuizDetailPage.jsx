@@ -18,9 +18,7 @@ export function QuizDetailPage() {
 
   const startQuiz = async () => {
     try {
-      const attempt = await apiJson(`/api/v1/quizzes/${id}/attempts`, {
-        method: 'POST',
-      });
+      const attempt = await apiJson(`/api/v1/quizzes/${id}/attempts`);
       navigate(`/quizzes/${id}/play`, { state: { attempt } });
     } catch (err) {
       setError(err.message);

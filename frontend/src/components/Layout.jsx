@@ -2,7 +2,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export function Layout() {
-  const { token, valid, setToken } = useAuth();
+  const { valid, validUnknown, setToken } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -30,7 +30,9 @@ export function Layout() {
               )}
             </ul>
             <ul className="navbar-nav">
-              {valid ? (
+              {validUnknown ? (
+                <li className="nav-item"><span className="nav-link text-white-50">Проверка...</span></li>
+              ) : valid ? (
                 <li className="nav-item">
                   <button type="button" className="btn btn-outline-light btn-sm" onClick={handleLogout}>Выйти</button>
                 </li>

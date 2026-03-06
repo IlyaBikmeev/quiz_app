@@ -48,7 +48,29 @@ export function QuizImportPage() {
   return (
     <div>
       <h1 className="mb-4">Импорт квиза из файла</h1>
-      <p className="text-muted">Формат: блоки Question: / Options: / [*] и [ ] для правильных и неправильных вариантов. Подробнее — в IMPORT_QUIZ_FORMAT.md.</p>
+
+      <div className="card bg-light mb-4">
+        <div className="card-body">
+          <h5 className="card-title">Формат файла</h5>
+          <p className="mb-2">Нужен <strong>текстовый</strong> файл в кодировке UTF-8 (например <code>.txt</code> или <code>.md</code>). PDF и другие бинарные форматы не подходят.</p>
+          <p className="mb-2">В файле подряд идут блоки вопросов. Каждый блок устроен так:</p>
+          <ul className="mb-2">
+            <li><code>Question:</code> — с новой строки пишете текст вопроса (можно в несколько строк).</li>
+            <li><code>Options:</code> — с новой строки перечисляете варианты ответа.</li>
+            <li>Перед вариантом: <code>[*]</code> — правильный ответ, <code>[ ]</code> (пробел в скобках) — неправильный.</li>
+            <li>Правильных ответов может быть несколько — тогда несколько строк с <code>[*]</code>.</li>
+          </ul>
+          <p className="mb-2 small text-muted">Пустая строка между блоками не обязательна, но допустима.</p>
+          <p className="mb-1"><strong>Пример блока:</strong></p>
+          <pre className="bg-white border rounded p-3 small mb-0" style={{ whiteSpace: 'pre-wrap' }}>{`Question: Столица России?
+Options:
+[*] Москва
+[ ] Санкт-Петербург
+[ ] Казань
+[ ] Новосибирск`}</pre>
+        </div>
+      </div>
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label className="form-label">Файл (.txt или .md)</label>

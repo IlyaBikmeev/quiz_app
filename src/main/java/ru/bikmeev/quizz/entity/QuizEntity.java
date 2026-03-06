@@ -26,5 +26,6 @@ public class QuizEntity {
     private UserEntity creator;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<QuestionEntity> questions;
 }

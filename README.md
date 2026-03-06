@@ -36,10 +36,28 @@ npm run dev
 
 Переменная окружения для API: **`VITE_API_URL`** (по умолчанию `http://localhost:8080`). Указывайте URL бэкенда, если он на другом хосте/порту.
 
-### Production
+### Деплой одним docker-compose (production)
+
+Фронт собирается в образе, статика раздаётся через nginx; API проксируется на бэкенд. Один входной порт — 80.
+
+```bash
+# Обязательно: MAIL_USERNAME и MAIL_PASSWORD для OTP
+export MAIL_USERNAME=your@mail.ru
+export MAIL_PASSWORD=...
+
+docker-compose up -d --build
+```
+
+Откройте http://localhost (порт 80). Бэкенд снаружи не публикуется, всё идёт через nginx.
+
+- **frontend**: сборка Vite (`npm run build`) с `VITE_API_URL=` (пусто — запросы на тот же хост), nginx раздаёт `dist` и проксирует `/api/` и `/auth/` на контейнер `app`.
+- **app**: Spring Boot, порт 8080 только внутри сети.
+- При необходимости задайте `VITE_API_URL` при сборке фронта (например полный URL API), если не используете общий nginx.
+
+### Production (раздельный деплой)
 
 - **Бэкенд**: сборка `./gradlew build`, запуск jar или Docker (см. `docker-compose.yaml`).
-- **Фронтенд**: `cd frontend && npm run build`. Раздавайте каталог `frontend/dist` через nginx или другой веб-сервер. Укажите в nginx проксирование запросов к API на бэкенд или настройте CORS на бэкенде для домена фронта (`cors.allowed-origins`).
-- В `application.properties` (или env): `cors.allowed-origins=https://your-frontend-domain.com`.
+- **Фронтенд**: `cd frontend && npm run build`. Раздавайте каталог `frontend/dist` через nginx с проксированием `/api` и `/auth` на бэкенд.
+- В `application.properties` (или env): `cors.allowed-origins` для домена фронта, если фронт и API на разных доменах.
 
 Подробная документация: [DOCUMENTATION.md](DOCUMENTATION.md).

@@ -15,6 +15,8 @@ public class AttemptResponse {
     private Long id;
     private Long quizId;
     private List<Question> questions;
+    /** For GET current: correct/incorrect per question index; null for unanswered. */
+    private List<Boolean> progress;
 
     @Data
     @NoArgsConstructor

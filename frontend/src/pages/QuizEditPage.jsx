@@ -27,6 +27,10 @@ export function QuizEditPage() {
     apiJson(`/api/v1/quizzes/${id}`)
       .then((data) => {
         if (cancelled) return;
+        if (data.canEdit === false) {
+          navigate(`/quizzes/${id}`, { replace: true });
+          return;
+        }
         setTitle(data.title || '');
         setQuestions(
           data.questions && data.questions.length > 0
@@ -41,7 +45,7 @@ export function QuizEditPage() {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, navigate]);
 
   const addQuestion = () => setQuestions((q) => [...q, defaultQuestion()]);
   const removeQuestion = (idx) => setQuestions((q) => q.filter((_, i) => i !== idx));
@@ -60,9 +64,12 @@ export function QuizEditPage() {
     ));
   };
   const removeOption = (qIdx, oIdx) => {
-    setQuestions((q) => q.map((item, i) =>
-      i === qIdx ? { ...item, options: (item.options || []).filter((_, j) => j !== oIdx) } : item
-    ));
+    setQuestions((q) => q.map((item, i) => {
+      if (i !== qIdx) return item;
+      const opts = item.options || [];
+      if (opts.length <= 1) return item;
+      return { ...item, options: opts.filter((_, j) => j !== oIdx) };
+    }));
   };
   const toggleCorrect = (qIdx, oIdx) => {
     setQuestions((q) => q.map((item, i) => {
@@ -77,19 +84,25 @@ export function QuizEditPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const payload = {
-      title: title || 'Без названия',
-      description: null,
-      questions: questions.map((q) => ({
-        text: q.text,
-        options: (q.options || []).filter(Boolean),
-        correctAnswers: (q.correctAnswers || []).sort((a, b) => a - b),
-      })).filter((q) => q.text.trim()),
-    };
-    if (payload.questions.length === 0) {
+    const questionsWithOptions = questions.map((q) => ({
+      text: q.text,
+      options: (q.options || []).filter(Boolean),
+      correctAnswers: (q.correctAnswers || []).sort((a, b) => a - b),
+    })).filter((q) => q.text.trim());
+    const withoutOptions = questionsWithOptions.filter((q) => q.options.length === 0);
+    if (withoutOptions.length > 0) {
+      setError('У каждого вопроса должен быть хотя бы один вариант ответа.');
+      return;
+    }
+    if (questionsWithOptions.length === 0) {
       setError('Должен остаться хотя бы один вопрос с текстом и вариантами.');
       return;
     }
+    const payload = {
+      title: title || 'Без названия',
+      description: null,
+      questions: questionsWithOptions,
+    };
     try {
       await apiJson(`/api/v1/quizzes/${id}`, {
         method: 'PUT',
@@ -142,7 +155,15 @@ export function QuizEditPage() {
                     value={opt}
                     onChange={(e) => setOption(qIdx, oIdx, e.target.value)}
                   />
-                  <button type="button" className="btn btn-outline-secondary" onClick={() => removeOption(qIdx, oIdx)}>×</button>
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary"
+                    onClick={() => removeOption(qIdx, oIdx)}
+                    disabled={(q.options || []).length <= 1}
+                    title={(q.options || []).length <= 1 ? 'Должен остаться хотя бы один вариант' : 'Удалить вариант'}
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
               <button type="button" className="btn btn-sm btn-outline-secondary mt-1" onClick={() => addOption(qIdx)}>+ Вариант</button>
