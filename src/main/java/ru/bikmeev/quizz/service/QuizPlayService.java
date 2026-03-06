@@ -231,15 +231,17 @@ public class QuizPlayService {
         AnswerEntity savedAnswer = answerRepository.save(answer);
         log.info("Answer with id {} has been successfully saved: ", savedAnswer.getId());
 
-        if (question.equals(quiz.getQuestions().get(quiz.getQuestions().size() - 1))) {
+        int totalQuestions = quiz.getQuestions().size();
+        long answeredCount = answerRepository.countByAttemptId(attemptId);
+        if (answeredCount == totalQuestions) {
             attempt.setCompletedAt(Instant.now());
             attemptRepository.save(attempt);
             log.info("Attempt with id {} has been successfully completed!", attempt.getId());
         }
 
-        int answeredQuestions = attempt.getAnswers().size();
-        int totalQuestions = quiz.getQuestions().size();
-        int correctAnswersCount = (int) attempt.getAnswers().stream()
+        int answeredQuestions = (int) answeredCount;
+        List<AnswerEntity> answersForAttempt = answerRepository.findByAttemptIdWithQuestion(attemptId);
+        int correctAnswersCount = (int) answersForAttempt.stream()
                 .filter(a -> new ArrayList<>(a.getQuestion().getCorrectAnswers()).equals(a.getSelectedAnswers()))
                 .count();
 

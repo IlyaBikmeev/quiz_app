@@ -123,7 +123,7 @@ export function QuizPlayPage() {
             : q
         ),
       }));
-      if (currentIndex >= questions.length - 1) {
+      if (res.answeredQuestions === res.totalQuestions && res.totalQuestions > 0) {
         const startMs = attempt.startedAt ? new Date(attempt.startedAt).getTime() : Date.now();
         setFinalTimeSeconds(Math.floor((Date.now() - startMs) / 1000));
         setFinished(true);
