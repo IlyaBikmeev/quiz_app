@@ -12,4 +12,6 @@ public interface CardProgressRepository extends JpaRepository<CardProgressEntity
     Optional<CardProgressEntity> findByUser_IdAndFlashcard_Id(Long userId, Long flashcardId);
 
     List<CardProgressEntity> findByUser_IdAndNextReviewAtLessThanEqual(Long userId, Instant instant);
+
+    List<CardProgressEntity> findByUser_IdAndFlashcard_IdIn(Long userId, List<Long> flashcardIds);
 }

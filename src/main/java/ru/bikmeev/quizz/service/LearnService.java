@@ -10,18 +10,22 @@ import ru.bikmeev.quizz.entity.*;
 import ru.bikmeev.quizz.repository.*;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class LearnService {
 
+    private static final double DEFAULT_EASE_FACTOR = 2.5;
+    private static final double MIN_EASE_FACTOR = 1.3;
+
     private final LearnSessionRepository learnSessionRepository;
     private final LearnSessionQueueRepository learnSessionQueueRepository;
     private final CardSetRepository cardSetRepository;
     private final FlashcardRepository flashcardRepository;
+    private final CardProgressRepository cardProgressRepository;
     private final AuthService authService;
 
     /**
@@ -40,12 +44,17 @@ public class LearnService {
             return buildSessionResponse(existing.get());
         }
 
-        List<FlashcardEntity> flashcards = flashcardRepository.findByCardSet_IdOrderByIdAsc(cardSetId);
-        if (flashcards.isEmpty()) {
+        List<FlashcardEntity> allFlashcards = flashcardRepository.findByCardSet_IdOrderByIdAsc(cardSetId);
+        if (allFlashcards.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "В наборе нет карточек");
         }
 
-        List<FlashcardEntity> shuffled = new java.util.ArrayList<>(flashcards);
+        Instant now = Instant.now();
+        List<FlashcardEntity> dueFlashcards = getDueFlashcards(user, allFlashcards, now);
+        if (dueFlashcards.isEmpty()) {
+            dueFlashcards = allFlashcards;
+        }
+        List<FlashcardEntity> shuffled = new ArrayList<>(dueFlashcards);
         Collections.shuffle(shuffled);
 
         LearnSessionEntity session = LearnSessionEntity.builder()
@@ -101,9 +110,12 @@ public class LearnService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Неверный ID карточки");
         }
 
+        FlashcardEntity flashcard = current.getFlashcard();
         if (Boolean.TRUE.equals(request.getCorrect())) {
+            updateCardProgressOnCorrect(user, flashcard);
             learnSessionQueueRepository.delete(current);
         } else {
+            updateCardProgressOnIncorrect(user, flashcard);
             int maxPos = learnSessionQueueRepository.findMaxPositionBySessionId(sessionId);
             current.setPosition(maxPos + 1);
             learnSessionQueueRepository.save(current);
@@ -169,5 +181,69 @@ public class LearnService {
                 .term(f.getTerm())
                 .definition(f.getDefinition())
                 .build();
+    }
+
+    private List<FlashcardEntity> getDueFlashcards(UserEntity user, List<FlashcardEntity> allFlashcards, Instant now) {
+        List<Long> flashcardIds = allFlashcards.stream().map(FlashcardEntity::getId).toList();
+        List<CardProgressEntity> progressList = cardProgressRepository.findByUser_IdAndFlashcard_IdIn(user.getId(), flashcardIds);
+        Set<Long> notDueIds = progressList.stream()
+                .filter(p -> p.getNextReviewAt() != null && p.getNextReviewAt().isAfter(now))
+                .map(p -> p.getFlashcard().getId())
+                .collect(Collectors.toSet());
+        return allFlashcards.stream()
+                .filter(f -> !notDueIds.contains(f.getId()))
+                .toList();
+    }
+
+    private void updateCardProgressOnCorrect(UserEntity user, FlashcardEntity flashcard) {
+        CardProgressEntity progress = cardProgressRepository
+                .findByUser_IdAndFlashcard_Id(user.getId(), flashcard.getId())
+                .orElse(CardProgressEntity.builder()
+                        .user(user)
+                        .flashcard(flashcard)
+                        .intervalDays(0)
+                        .repetitions(0)
+                        .easeFactor(DEFAULT_EASE_FACTOR)
+                        .build());
+
+        int reps = (progress.getRepetitions() == null ? 0 : progress.getRepetitions());
+        int interval = (progress.getIntervalDays() == null ? 0 : progress.getIntervalDays());
+        double ef = (progress.getEaseFactor() == null ? DEFAULT_EASE_FACTOR : progress.getEaseFactor());
+
+        int newInterval;
+        if (reps == 0) {
+            newInterval = 1;
+        } else if (reps == 1) {
+            newInterval = 6;
+        } else {
+            newInterval = Math.max(1, (int) Math.round(interval * ef));
+        }
+
+        progress.setRepetitions(reps + 1);
+        progress.setIntervalDays(newInterval);
+        progress.setLastReviewedAt(Instant.now());
+        progress.setNextReviewAt(Instant.now().plus(newInterval, ChronoUnit.DAYS));
+        progress.setEaseFactor(Math.max(MIN_EASE_FACTOR, ef + 0.1));
+
+        cardProgressRepository.save(progress);
+    }
+
+    private void updateCardProgressOnIncorrect(UserEntity user, FlashcardEntity flashcard) {
+        CardProgressEntity progress = cardProgressRepository
+                .findByUser_IdAndFlashcard_Id(user.getId(), flashcard.getId())
+                .orElse(CardProgressEntity.builder()
+                        .user(user)
+                        .flashcard(flashcard)
+                        .intervalDays(0)
+                        .repetitions(0)
+                        .easeFactor(DEFAULT_EASE_FACTOR)
+                        .build());
+
+        progress.setRepetitions(0);
+        progress.setIntervalDays(0);
+        progress.setLastReviewedAt(Instant.now());
+        progress.setNextReviewAt(Instant.now());
+
+        cardProgressRepository.save(progress);
     }
 }
