@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.bikmeev.quizz.dto.*;
 import ru.bikmeev.quizz.service.CardSetService;
+import ru.bikmeev.quizz.service.LearnService;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,6 +16,7 @@ import ru.bikmeev.quizz.service.CardSetService;
 public class CardSetRestController {
 
     private final CardSetService cardSetService;
+    private final LearnService learnService;
 
     @GetMapping
     public ResponseEntity<Page<CardSetDto>> getCardSetPage(
@@ -38,5 +40,17 @@ public class CardSetRestController {
     public ResponseEntity<CreatedCardSetResponse> importCardSet(@RequestParam("file") MultipartFile file) {
         long id = cardSetService.importFromFile(file);
         return ResponseEntity.status(HttpStatus.CREATED).body(CreatedCardSetResponse.builder().id(id).build());
+    }
+
+    @PostMapping("/{id}/learn/start")
+    public ResponseEntity<LearnSessionResponse> startLearn(@PathVariable Long id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(learnService.startSession(id));
+    }
+
+    @GetMapping("/{id}/learn/current")
+    public ResponseEntity<LearnSessionResponse> getCurrentLearnSession(@PathVariable Long id) {
+        return learnService.getCurrentSession(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 }
