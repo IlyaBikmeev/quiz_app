@@ -25,6 +25,8 @@ export function Layout() {
                 <>
                   <li className="nav-item"><Link className="nav-link" to="/quizzes">Квизы</Link></li>
                   <li className="nav-item"><Link className="nav-link" to="/quizzes/new">Создать квиз</Link></li>
+                  <li className="nav-item"><Link className="nav-link" to="/card-sets">Наборы карточек</Link></li>
+                  <li className="nav-item"><Link className="nav-link" to="/card-sets/new">Создать набор</Link></li>
                   <li className="nav-item"><Link className="nav-link" to="/profile">Профиль</Link></li>
                 </>
               )}

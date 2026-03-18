@@ -15,6 +15,8 @@ import { QuizPlayPage } from './pages/QuizPlayPage';
 import { QuizEditPage } from './pages/QuizEditPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { CardSetsPage } from './pages/CardSetsPage';
+import { CardSetNewPage } from './pages/CardSetNewPage';
 
 export default function App() {
   return (
@@ -33,6 +35,8 @@ export default function App() {
             <Route path="quizzes/:id" element={<ProtectedRoute><QuizDetailPage /></ProtectedRoute>} />
             <Route path="quizzes/:id/edit" element={<ProtectedRoute><QuizEditPage /></ProtectedRoute>} />
             <Route path="quizzes/:quizId/play" element={<ProtectedRoute><QuizPlayPage /></ProtectedRoute>} />
+            <Route path="card-sets" element={<ProtectedRoute><CardSetsPage /></ProtectedRoute>} />
+            <Route path="card-sets/new" element={<ProtectedRoute><CardSetNewPage /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
