@@ -17,6 +17,10 @@ import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { CardSetsPage } from './pages/CardSetsPage';
 import { CardSetNewPage } from './pages/CardSetNewPage';
+import { CardSetCreateManualPage } from './pages/CardSetCreateManualPage';
+import { CardSetImportPage } from './pages/CardSetImportPage';
+import { CardSetDetailPage } from './pages/CardSetDetailPage';
+import { LearnPage } from './pages/LearnPage';
 
 export default function App() {
   return (
@@ -37,6 +41,10 @@ export default function App() {
             <Route path="quizzes/:quizId/play" element={<ProtectedRoute><QuizPlayPage /></ProtectedRoute>} />
             <Route path="card-sets" element={<ProtectedRoute><CardSetsPage /></ProtectedRoute>} />
             <Route path="card-sets/new" element={<ProtectedRoute><CardSetNewPage /></ProtectedRoute>} />
+            <Route path="card-sets/new/manual" element={<ProtectedRoute><CardSetCreateManualPage /></ProtectedRoute>} />
+            <Route path="card-sets/new/import" element={<ProtectedRoute><CardSetImportPage /></ProtectedRoute>} />
+            <Route path="card-sets/:id" element={<ProtectedRoute><CardSetDetailPage /></ProtectedRoute>} />
+            <Route path="card-sets/:id/learn" element={<ProtectedRoute><LearnPage /></ProtectedRoute>} />
             <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
