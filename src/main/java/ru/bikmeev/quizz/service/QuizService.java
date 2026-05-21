@@ -146,7 +146,7 @@ public class QuizService {
         if (entity.getCreator() == null || !entity.getCreator().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Удалить может только автор квиза");
         }
-        List<AttemptEntity> attempts = attemptRepository.findByQuiz_Id(id);
+        List<AttemptEntity> attempts = attemptRepository.findByQuizId(id);
         attemptRepository.deleteAll(attempts);
         quizRepository.delete(entity);
     }

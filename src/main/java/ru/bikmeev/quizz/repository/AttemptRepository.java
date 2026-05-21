@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AttemptRepository extends JpaRepository<AttemptEntity, Long> {
-
-    List<AttemptEntity> findByQuiz_Id(Long quizId);
-
-    /** Active attempt = not completed (completedAt is null). */
-    Optional<AttemptEntity> findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(Long quizId, Long userId);
+    List<AttemptEntity> findByQuizId(Long quizId);
+    Optional<AttemptEntity> findFirstByQuizIdAndUserIdAndCompletedAtIsNullOrderByIdDesc(Long quizId, Long userId);
 }

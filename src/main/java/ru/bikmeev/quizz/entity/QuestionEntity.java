@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -26,14 +27,14 @@ public class QuestionEntity {
             name = "question_options",
             joinColumns = @JoinColumn(name = "question_id")
     )
-    private List<String> options;
+    private List<String> options = Collections.emptyList();
 
     @ElementCollection
     @CollectionTable(
             name = "question_correct_answers",
             joinColumns = @JoinColumn(name = "question_id")
     )
-    private List<Integer> correctAnswers;
+    private List<Integer> correctAnswers = Collections.emptyList();
 
     @ManyToOne
     @JoinColumn(name = "quiz_id")

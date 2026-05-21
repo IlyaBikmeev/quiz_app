@@ -16,6 +16,7 @@ public class UserRestController {
 
     private final AuthService authService;
 
+    //TODO сделать чтобы сервис возвращал "текущего юзера"
     @GetMapping("/me")
     public ResponseEntity<UserMeResponse> getCurrentUser() {
         UserEntity user = authService.getCurrentUser();

@@ -14,6 +14,7 @@ import ru.bikmeev.quizz.entity.AttemptEntity;
 import ru.bikmeev.quizz.entity.QuestionEntity;
 import ru.bikmeev.quizz.entity.QuizEntity;
 import ru.bikmeev.quizz.entity.UserEntity;
+import ru.bikmeev.quizz.mapper.AttemptMapper;
 import ru.bikmeev.quizz.repository.AnswerRepository;
 import ru.bikmeev.quizz.repository.AttemptRepository;
 import ru.bikmeev.quizz.repository.QuizRepository;
@@ -21,7 +22,6 @@ import ru.bikmeev.quizz.repository.QuizRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -31,6 +31,7 @@ public class QuizPlayService {
     private final QuizRepository quizRepository;
     private final AnswerRepository answerRepository;
     private final AuthService authService;
+    private final AttemptMapper attemptMapper;
 
     /** Multiple choice = user can select several options; derived from question having more than one correct answer. */
     private static boolean isMultipleChoice(QuestionEntity q) {
@@ -48,95 +49,16 @@ public class QuizPlayService {
         attempt.setStartedAt(Instant.now());
 
         AttemptEntity savedAttempt = attemptRepository.save(attempt);
-        int size = quiz.getQuestions().size();
-        List<Boolean> emptyProgress = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) emptyProgress.add(null);
-        return AttemptResponse.builder()
-                .id(savedAttempt.getId())
-                .quizId(quizId)
-                .startedAt(savedAttempt.getStartedAt())
-                .completedAt(savedAttempt.getCompletedAt())
-                .questions(quiz.getQuestions()
-                        .stream()
-                        .map(q -> new AttemptResponse.Question(
-                                q.getId(),
-                                q.getText(),
-                                q.getOptions(),
-                                isMultipleChoice(q),
-                                null,
-                                null,
-                                null
-                        )).toList())
-                .progress(emptyProgress)
-                .build();
+
+        return attemptMapper.toResponse(savedAttempt);
     }
 
-    /** Returns current active attempt (with progress) if exists, otherwise creates a new one. Single entry point for "start or resume". */
     @Transactional
     public AttemptResponse startOrResumeAttempt(Long quizId) {
-        Optional<AttemptEntity> opt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(
-                quizId, authService.getCurrentUser().getId());
-        if (opt.isPresent()) {
-            return getCurrentAttempt(quizId);
-        }
-        return createAttempt(quizId);
-    }
-
-    @Transactional(readOnly = true)
-    public AttemptResponse getCurrentAttempt(Long quizId) {
-        UserEntity currentUser = authService.getCurrentUser();
-        AttemptEntity attempt = attemptRepository.findFirstByQuiz_IdAndUser_IdAndCompletedAtIsNullOrderByIdDesc(
-                quizId, currentUser.getId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No active attempt for this quiz"));
-        QuizEntity quiz = attempt.getQuiz();
-        List<QuestionEntity> quizQuestions = quiz.getQuestions();
-        List<AttemptResponse.Question> questions = new ArrayList<>();
-        for (QuestionEntity q : quizQuestions) {
-            questions.add(new AttemptResponse.Question(
-                    q.getId(),
-                    q.getText(),
-                    q.getOptions(),
-                    isMultipleChoice(q),
-                    null,
-                    null,
-                    null
-            ));
-        }
-        List<Boolean> progress = new ArrayList<>();
-        for (int i = 0; i < quizQuestions.size(); i++) {
-            progress.add(null);
-        }
-        List<AnswerEntity> answers = answerRepository.findByAttemptIdWithQuestion(attempt.getId());
-        for (AnswerEntity a : answers) {
-            QuestionEntity q = a.getQuestion();
-            if (q == null) continue;
-            List<Integer> correctSorted = (q.getCorrectAnswers() == null ? List.<Integer>of() : new ArrayList<>(q.getCorrectAnswers())).stream().sorted().toList();
-            List<Integer> selectedSorted = (a.getSelectedAnswers() == null ? List.<Integer>of() : new ArrayList<>(a.getSelectedAnswers())).stream().sorted().toList();
-            boolean correct = correctSorted.equals(selectedSorted);
-            for (int i = 0; i < quizQuestions.size(); i++) {
-                if (quizQuestions.get(i).getId().equals(q.getId())) {
-                    progress.set(i, correct);
-                    questions.set(i, new AttemptResponse.Question(
-                            questions.get(i).getId(),
-                            questions.get(i).getText(),
-                            questions.get(i).getOptions(),
-                            questions.get(i).isMultipleChoice(),
-                            selectedSorted,
-                            correctSorted,
-                            correct
-                    ));
-                    break;
-                }
-            }
-        }
-        return AttemptResponse.builder()
-                .id(attempt.getId())
-                .quizId(quizId)
-                .startedAt(attempt.getStartedAt())
-                .completedAt(attempt.getCompletedAt())
-                .questions(questions)
-                .progress(progress)
-                .build();
+        return attemptRepository.findFirstByQuizIdAndUserIdAndCompletedAtIsNullOrderByIdDesc(
+                quizId, authService.getCurrentUser().getId())
+                .map(attemptMapper::toResponse)
+                .orElseGet(() -> createAttempt(quizId));
     }
 
     /** Returns attempt by id with full review data (selectedAnswers, correctAnswers, correct per question). For owner only. */
