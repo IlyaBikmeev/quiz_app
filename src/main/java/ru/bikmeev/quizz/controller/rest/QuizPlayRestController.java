@@ -34,6 +34,7 @@ public class QuizPlayRestController {
         return ResponseEntity.ok(quizPlayService.getAttemptForReview(attemptId));
     }
 
+    //TODO Какой-то баг, не завершается автоматически щас квиз после ответа на последний вопрос
     @PostMapping("/attempts/{attemptId}/answer")
     public ResponseEntity<AnswerResponse> answerToQuestion(@PathVariable Long attemptId,
                                                            @RequestBody AnswerRequest request) {
