@@ -33,16 +33,11 @@ public class QuizPlayService {
     private final AuthService authService;
     private final AttemptMapper attemptMapper;
 
-    /** Multiple choice = user can select several options; derived from question having more than one correct answer. */
-    private static boolean isMultipleChoice(QuestionEntity q) {
-        return q.getCorrectAnswers() != null && q.getCorrectAnswers().size() > 1;
-    }
-
     @Transactional
     public AttemptResponse createAttempt(Long quizId) {
-        UserEntity currentUser = authService.getCurrentUser();
+        UserEntity currentUser = authService.getCurrentUser();  //TODO выпилить и чисто айдишник юзера в сущности сетить
         QuizEntity quiz = quizRepository.findById(quizId).orElseThrow();
-        
+
         AttemptEntity attempt = new AttemptEntity();
         attempt.setQuiz(quiz);
         attempt.setUser(currentUser);
@@ -56,73 +51,18 @@ public class QuizPlayService {
     @Transactional
     public AttemptResponse startOrResumeAttempt(Long quizId) {
         return attemptRepository.findFirstByQuizIdAndUserIdAndCompletedAtIsNullOrderByIdDesc(
-                quizId, authService.getCurrentUser().getId())
+                        quizId, authService.getCurrentUser().getId())
                 .map(attemptMapper::toResponse)
                 .orElseGet(() -> createAttempt(quizId));
     }
 
-    /** Returns attempt by id with full review data (selectedAnswers, correctAnswers, correct per question). For owner only. */
     @Transactional(readOnly = true)
     public AttemptResponse getAttemptForReview(Long attemptId) {
-        UserEntity currentUser = authService.getCurrentUser();
-        AttemptEntity attempt = attemptRepository.findById(attemptId)
+        return attemptRepository.findById(attemptId)
+                .map(attemptMapper::toResponse)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId)));
-        if (!attempt.getUser().getId().equals(currentUser.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
-        }
-        Long quizId = attempt.getQuiz().getId();
-        QuizEntity quiz = attempt.getQuiz();
-        List<QuestionEntity> quizQuestions = quiz.getQuestions();
-        List<AttemptResponse.Question> questions = new ArrayList<>();
-        for (QuestionEntity q : quizQuestions) {
-            questions.add(new AttemptResponse.Question(
-                    q.getId(),
-                    q.getText(),
-                    q.getOptions(),
-                    isMultipleChoice(q),
-                    null,
-                    null,
-                    null
-            ));
-        }
-        List<Boolean> progress = new ArrayList<>();
-        for (int i = 0; i < quizQuestions.size(); i++) {
-            progress.add(null);
-        }
-        List<AnswerEntity> answers = answerRepository.findByAttemptIdWithQuestion(attempt.getId());
-        for (AnswerEntity a : answers) {
-            QuestionEntity q = a.getQuestion();
-            if (q == null) continue;
-            List<Integer> correctSorted = (q.getCorrectAnswers() == null ? List.<Integer>of() : new ArrayList<>(q.getCorrectAnswers())).stream().sorted().toList();
-            List<Integer> selectedSorted = (a.getSelectedAnswers() == null ? List.<Integer>of() : new ArrayList<>(a.getSelectedAnswers())).stream().sorted().toList();
-            boolean correct = correctSorted.equals(selectedSorted);
-            for (int i = 0; i < quizQuestions.size(); i++) {
-                if (quizQuestions.get(i).getId().equals(q.getId())) {
-                    progress.set(i, correct);
-                    questions.set(i, new AttemptResponse.Question(
-                            questions.get(i).getId(),
-                            questions.get(i).getText(),
-                            questions.get(i).getOptions(),
-                            questions.get(i).isMultipleChoice(),
-                            selectedSorted,
-                            correctSorted,
-                            correct
-                    ));
-                    break;
-                }
-            }
-        }
-        return AttemptResponse.builder()
-                .id(attempt.getId())
-                .quizId(quizId)
-                .startedAt(attempt.getStartedAt())
-                .completedAt(attempt.getCompletedAt())
-                .questions(questions)
-                .progress(progress)
-                .build();
     }
 
-    /** Marks attempt as completed (early finish). Idempotent if already completed. */
     @Transactional
     public void completeAttempt(Long attemptId) {
         UserEntity currentUser = authService.getCurrentUser();
@@ -141,16 +81,16 @@ public class QuizPlayService {
     @Transactional
     public AnswerResponse answer(Long attemptId, AnswerRequest request) {
         UserEntity currentUser = authService.getCurrentUser();
-        
+
         AttemptEntity attempt = attemptRepository.findById(attemptId).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId))
         );
-        
+
         // Проверяем, что попытка принадлежит текущему пользователю
         if (!attempt.getUser().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
         }
-        
+
         QuizEntity quiz = quizRepository.findById(request.getQuizId()).orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No quiz with id %d found".formatted(request.getQuizId()))
         );

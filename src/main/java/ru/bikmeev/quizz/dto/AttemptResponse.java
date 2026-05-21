@@ -27,6 +27,7 @@ public class AttemptResponse {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class Question {
         private Long id;
         private String text;
