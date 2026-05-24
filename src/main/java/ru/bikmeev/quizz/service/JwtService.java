@@ -21,7 +21,7 @@ public class JwtService {
 
     public String generateToken(UserEntity user) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + jwtProperties.getJwtExpiration());
+        Date expiry = new Date(now.getTime() + jwtProperties.expiration());
 
         return Jwts.builder()
                 .setSubject(user.getEmail())
@@ -34,6 +34,6 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        return Keys.hmacShaKeyFor(jwtProperties.getSecretKey().getBytes());
+        return Keys.hmacShaKeyFor(jwtProperties.secret().getBytes());
     }
 }
