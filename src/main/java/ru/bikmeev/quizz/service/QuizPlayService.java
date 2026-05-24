@@ -86,19 +86,15 @@ public class QuizPlayService {
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId))
         );
 
-        // Проверяем, что попытка принадлежит текущему пользователю
         if (!attempt.getUser().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
         }
 
-        QuizEntity quiz = quizRepository.findById(request.getQuizId()).orElseThrow(
-                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No quiz with id %d found".formatted(request.getQuizId()))
-        );
-
-        QuestionEntity question = quiz.getQuestions().stream()
+        QuestionEntity question = attempt.getQuiz().getQuestions().stream()
                 .filter(q -> q.getId().equals(request.getQuestionId()))
-                .findFirst().orElseThrow(
-                        () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No question with id %d found".formatted(request.getQuestionId()))
+                .findFirst().orElseThrow(() ->
+                        new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "No question with id %d found".formatted(request.getQuestionId()))
                 );
 
         log.info("Correct answers: {}. Answers from request: {}", question.getCorrectAnswers(), request.getAnswers());
@@ -114,16 +110,16 @@ public class QuizPlayService {
         AnswerEntity savedAnswer = answerRepository.save(answer);
         log.info("Answer with id {} has been successfully saved: ", savedAnswer.getId());
 
-        int totalQuestions = quiz.getQuestions().size();
-        long answeredCount = answerRepository.countByAttemptId(attemptId);
+        int totalQuestions = attempt.getQuiz().getQuestions().size();
+        long answeredCount = attempt.getAnswers().size();
+
         if (answeredCount == totalQuestions) {
             attempt.setCompletedAt(Instant.now());
-            attemptRepository.save(attempt);
             log.info("Attempt with id {} has been successfully completed!", attempt.getId());
         }
 
         int answeredQuestions = (int) answeredCount;
-        List<AnswerEntity> answersForAttempt = answerRepository.findByAttemptIdWithQuestion(attemptId);
+        List<AnswerEntity> answersForAttempt = attempt.getAnswers();
         int correctAnswersCount = (int) answersForAttempt.stream()
                 .filter(a -> new ArrayList<>(a.getQuestion().getCorrectAnswers()).equals(a.getSelectedAnswers()))
                 .count();
