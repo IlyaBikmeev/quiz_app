@@ -97,7 +97,7 @@ public class QuizPlayService {
                                 "No question with id %d found".formatted(request.getQuestionId()))
                 );
 
-        log.info("Correct answers: {}. Answers from request: {}", question.getCorrectAnswers(), request.getAnswers());
+        log.debug("Checking answer attemptId={} questionId={}", attemptId, question.getId());
         boolean isCorrect = request.getAnswers().equals(
                 new ArrayList<>(question.getCorrectAnswers())
         );
@@ -108,7 +108,8 @@ public class QuizPlayService {
                 .build();
 
         AnswerEntity savedAnswer = answerRepository.save(answer);
-        log.info("Answer with id {} has been successfully saved: ", savedAnswer.getId());
+        log.info("Answer saved answerId={} attemptId={} questionId={}",
+                savedAnswer.getId(), attemptId, question.getId());
 
         int totalQuestions = attempt.getQuiz().getQuestions().size();
         long answeredCount = attempt.getAnswers().size();
