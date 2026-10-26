@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -23,9 +25,13 @@ public class QuizEntity {
 
     @ManyToOne
     @JoinColumn(name = "creator_id", referencedColumnName = "id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private UserEntity creator;
 
     @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id ASC")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<QuestionEntity> questions;
 }

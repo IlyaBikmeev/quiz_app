@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "learn_session_queue")
@@ -19,10 +21,14 @@ public class LearnSessionQueueEntity {
 
     @ManyToOne
     @JoinColumn(name = "session_id", referencedColumnName = "id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private LearnSessionEntity session;
 
     @ManyToOne
     @JoinColumn(name = "flashcard_id", referencedColumnName = "id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private FlashcardEntity flashcard;
 
     private Integer position;

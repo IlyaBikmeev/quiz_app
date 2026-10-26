@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -28,9 +30,13 @@ public class AnswerEntity {
 
     @ManyToOne
     @JoinColumn(name = "question_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private QuestionEntity question;
 
     @ManyToOne
     @JoinColumn(name = "attempt_id")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private AttemptEntity attempt;
 }
