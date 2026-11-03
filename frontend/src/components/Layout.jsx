@@ -24,7 +24,7 @@ export function Layout() {
 
             {!validUnknown && valid && (
               <Group gap="xs" wrap="nowrap">
-                <Button component={Link} to="/quizzes" variant={location.pathname === '/quizzes' ? 'light' : 'subtle'} color="dark">
+                <Button component={Link} to="/quizzes" variant={location.pathname === '/quizzes' ? 'light' : 'subtle'} color="dark" visibleFrom="xs" h={44}>
                   Квизы
                 </Button>
                 <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" visibleFrom="sm">
@@ -33,12 +33,12 @@ export function Layout() {
                 <Button component={Link} to="/quizzes/new" leftSection={<IconPlus size={16} />} visibleFrom="xs">
                   Создать
                 </Button>
-                <ActionIcon component={Link} to="/quizzes/new" aria-label="Создать квиз" size="lg" hiddenFrom="xs">
+                <ActionIcon component={Link} to="/quizzes/new" aria-label="Создать квиз" size={44} hiddenFrom="xs">
                   <IconPlus size={20} />
                 </ActionIcon>
                 <Menu position="bottom-end" width={180}>
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="dark" size="lg" aria-label="Меню профиля">
+                    <ActionIcon variant="subtle" color="dark" size={44} aria-label="Меню профиля">
                       <IconUser size={20} />
                     </ActionIcon>
                   </Menu.Target>

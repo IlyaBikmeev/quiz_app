@@ -1,25 +1,29 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/Layout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { HomePage } from './pages/HomePage';
-import { LoginPage } from './pages/LoginPage';
-import { RegisterPage } from './pages/RegisterPage';
-import { VerifyPage } from './pages/VerifyPage';
-import { QuizzesPage } from './pages/QuizzesPage';
-import { QuizDetailPage } from './pages/QuizDetailPage';
-import { QuizCreateManualPage } from './pages/QuizCreateManualPage';
-import { QuizImportPage } from './pages/QuizImportPage';
-import { QuizPlayPage } from './pages/QuizPlayPage';
-import { QuizEditPage } from './pages/QuizEditPage';
-import { ProfilePage } from './pages/ProfilePage';
-import { AttemptsPage } from './pages/AttemptsPage';
+import { LoadingState } from './components/PageState';
+
+const HomePage = lazy(() => import('./pages/HomePage').then((module) => ({ default: module.HomePage })));
+const LoginPage = lazy(() => import('./pages/LoginPage').then((module) => ({ default: module.LoginPage })));
+const RegisterPage = lazy(() => import('./pages/RegisterPage').then((module) => ({ default: module.RegisterPage })));
+const VerifyPage = lazy(() => import('./pages/VerifyPage').then((module) => ({ default: module.VerifyPage })));
+const QuizzesPage = lazy(() => import('./pages/QuizzesPage').then((module) => ({ default: module.QuizzesPage })));
+const QuizDetailPage = lazy(() => import('./pages/QuizDetailPage').then((module) => ({ default: module.QuizDetailPage })));
+const QuizCreateManualPage = lazy(() => import('./pages/QuizCreateManualPage').then((module) => ({ default: module.QuizCreateManualPage })));
+const QuizImportPage = lazy(() => import('./pages/QuizImportPage').then((module) => ({ default: module.QuizImportPage })));
+const QuizPlayPage = lazy(() => import('./pages/QuizPlayPage').then((module) => ({ default: module.QuizPlayPage })));
+const QuizEditPage = lazy(() => import('./pages/QuizEditPage').then((module) => ({ default: module.QuizEditPage })));
+const ProfilePage = lazy(() => import('./pages/ProfilePage').then((module) => ({ default: module.ProfilePage })));
+const AttemptsPage = lazy(() => import('./pages/AttemptsPage').then((module) => ({ default: module.AttemptsPage })));
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <Suspense fallback={<LoadingState label="Загрузка страницы…" />}>
+          <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="login" element={<LoginPage />} />
@@ -39,7 +43,8 @@ export default function App() {
             <Route path="settings" element={<Navigate to="/profile" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       </AuthProvider>
     </BrowserRouter>
   );

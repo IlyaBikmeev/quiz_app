@@ -1,4 +1,4 @@
-import { Badge, Button, Divider, Group, Paper, Stack, Text, Title } from '@mantine/core';
+import { Badge, Box, Button, Divider, Group, Paper, Stack, Text, Title } from '@mantine/core';
 import { IconArrowRight, IconHistory } from '@tabler/icons-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -17,15 +17,15 @@ function AttemptRow({ attempt }) {
     : `${attempt.correctAnswers} из ${attempt.totalQuestions} правильных`;
 
   return (
-    <Group justify="space-between" wrap="nowrap" p="md" align="center">
-      <div>
+    <Group justify="space-between" wrap="wrap" p="md" align="center">
+      <Box flex="1 1 220px" miw={0}>
         <Group gap="xs" mb={2}>
           <Text component={Link} to={href} fw={600} c="dark" td="none">{attempt.quizTitle || 'Без названия'}</Text>
           {active && <Badge variant="light">Не завершено</Badge>}
         </Group>
         <Text size="sm" c="dimmed">{result} · {dateFormatter.format(new Date(attempt.startedAt))}</Text>
-      </div>
-      <Button component={Link} to={href} variant={active ? 'filled' : 'default'} rightSection={<IconArrowRight size={16} />}>
+      </Box>
+      <Button component={Link} to={href} variant={active ? 'filled' : 'default'} rightSection={<IconArrowRight size={16} />} w={{ base: '100%', xs: 'auto' }} h={44}>
         {active ? 'Продолжить' : 'Посмотреть'}
       </Button>
     </Group>

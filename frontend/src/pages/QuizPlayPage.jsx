@@ -247,8 +247,8 @@ export function QuizPlayPage() {
     <Stack maw={1040} mx="auto" gap="lg">
       <Group justify="space-between"><div><Text fw={600}>{reviewing ? 'Разбор ответов' : quizTitle}</Text><Text size="sm" c="dimmed">Вопрос {currentIndex + 1} из {questions.length}</Text></div><Group gap="xs"><IconClock size={16} /><Text size="sm">{formatTime(elapsed)}</Text></Group></Group>
       <Progress value={(answeredCount / questions.length) * 100} aria-label={`Отвечено ${answeredCount} из ${questions.length}`} />
-      <Button hiddenFrom="md" variant="default" onClick={navigator.open}>Все вопросы · {answeredCount}/{questions.length}</Button>
-      <Drawer opened={navigatorOpened} onClose={navigator.close} title="Навигация по вопросам" position="right" size="xs">
+      <Button hiddenFrom="md" variant="default" h={44} onClick={navigator.open}>Все вопросы · {answeredCount}/{questions.length}</Button>
+      <Drawer opened={navigatorOpened} onClose={navigator.close} title="Навигация по вопросам" position="right" size="xs" closeButtonProps={{ size: 44 }}>
         {questionNavigator}
       </Drawer>
       <Grid align="flex-start" gutter="lg">
@@ -261,7 +261,7 @@ export function QuizPlayPage() {
               {locked && <Alert color={resultColor} icon={correct === true ? <IconCheck size={18} /> : <IconX size={18} />}>{resultMessage}</Alert>}
               {error && <Alert color="red" icon={<IconAlertCircle size={18} />}>{error}</Alert>}
               <Group justify="flex-end">
-                {reviewing ? <Button onClick={() => setReviewing(false)}>К результату</Button> : locked ? <Button onClick={next}>{answeredCount === questions.length ? 'Показать результат' : 'К следующему без ответа'}</Button> : <Button onClick={submitAnswer} loading={submitting}>Проверить ответ</Button>}
+                {reviewing ? <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={() => setReviewing(false)}>К результату</Button> : locked ? <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={next}>{answeredCount === questions.length ? 'Показать результат' : 'К следующему без ответа'}</Button> : <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={submitAnswer} loading={submitting}>Проверить ответ</Button>}
               </Group>
             </Stack>
           </Paper>
@@ -270,7 +270,7 @@ export function QuizPlayPage() {
           <Paper withBorder p="md">{questionNavigator}</Paper>
         </Grid.Col>
       </Grid>
-      {!reviewing && <Button variant="subtle" color="gray" mx="auto" onClick={finishEarly} disabled={submitting}>Завершить попытку</Button>}
+      {!reviewing && <Button variant="subtle" color="gray" mx="auto" h={44} onClick={finishEarly} disabled={submitting}>Завершить попытку</Button>}
     </Stack>
   );
 }
