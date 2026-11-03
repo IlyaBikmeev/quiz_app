@@ -1,5 +1,5 @@
 import { ActionIcon, AppShell, Button, Container, Group, Menu, Text, Title } from '@mantine/core';
-import { IconHistory, IconLogout, IconPlus, IconUser } from '@tabler/icons-react';
+import { IconHistory, IconList, IconLogout, IconPlus, IconUser } from '@tabler/icons-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,7 +14,7 @@ export function Layout() {
   };
 
   return (
-    <AppShell header={{ height: 60 }} padding="md">
+    <AppShell header={{ height: 60 }} footer={{ height: { base: valid ? 64 : 0, xs: 0 } }} padding="md">
       <AppShell.Header>
         <Container size="md" h="100%">
           <Group h="100%" justify="space-between" wrap="nowrap">
@@ -38,7 +38,7 @@ export function Layout() {
                 </ActionIcon>
                 <Menu position="bottom-end" width={180}>
                   <Menu.Target>
-                    <ActionIcon variant="subtle" color="dark" size={44} aria-label="Меню профиля">
+                    <ActionIcon variant="subtle" color="dark" size={44} aria-label="Меню профиля" visibleFrom="xs">
                       <IconUser size={20} />
                     </ActionIcon>
                   </Menu.Target>
@@ -68,6 +68,15 @@ export function Layout() {
           <Outlet />
         </Container>
       </AppShell.Main>
+      {valid && (
+        <AppShell.Footer hiddenFrom="xs">
+          <Group grow h="100%" gap={0}>
+            <Button component={Link} to="/quizzes" variant={location.pathname.startsWith('/quizzes') ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconList size={20} />} aria-current={location.pathname.startsWith('/quizzes') ? 'page' : undefined}>Квизы</Button>
+            <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconHistory size={20} />} aria-current={location.pathname === '/attempts' ? 'page' : undefined}>Попытки</Button>
+            <Button component={Link} to="/profile" variant={location.pathname === '/profile' ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconUser size={20} />} aria-current={location.pathname === '/profile' ? 'page' : undefined}>Профиль</Button>
+          </Group>
+        </AppShell.Footer>
+      )}
     </AppShell>
   );
 }

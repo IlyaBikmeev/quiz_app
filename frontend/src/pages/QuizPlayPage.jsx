@@ -1,4 +1,4 @@
-import { Alert, Anchor, Badge, Button, Checkbox, Drawer, Grid, Group, Paper, Progress, Radio, SimpleGrid, Stack, Text, Title } from '@mantine/core';
+import { Alert, Anchor, Badge, Button, Checkbox, Drawer, Grid, Group, List, Paper, Progress, Radio, SimpleGrid, Stack, Text, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { IconAlertCircle, IconCheck, IconClock, IconX } from '@tabler/icons-react';
@@ -195,11 +195,8 @@ export function QuizPlayPage() {
   const locked = progress[currentIndex] != null || reviewing;
   const values = reviewSelected.map(String);
   const resultColor = correct === true ? 'green' : correct === false ? 'red' : 'gray';
-  const resultMessage = correct === true
-    ? 'Правильно'
-    : correct === false
-      ? `Правильный ответ: ${correctAnswers.map((index) => displayedQuestion.options[index]).join(', ')}`
-      : 'На этот вопрос нет ответа';
+  const resultTitle = correct === true ? 'Правильно' : correct === false ? 'Неправильно' : 'Нет ответа';
+  const correctOptions = correctAnswers.map((index) => displayedQuestion.options[index]);
   const questionNavigator = (
     <Stack gap="md">
       <Group justify="space-between">
@@ -235,10 +232,10 @@ export function QuizPlayPage() {
   const options = (
     <Stack gap="sm">
       {displayedQuestion.options.map((option, index) => (
-        <Group key={`${displayedQuestion.id}-${index}`} justify="space-between" wrap="nowrap">
+        <Stack key={`${displayedQuestion.id}-${index}`} gap={6}>
           {multiple ? <Checkbox value={String(index)} label={option} disabled={locked} /> : <Radio value={String(index)} label={option} disabled={locked} />}
-          {locked && <Group gap={4} wrap="nowrap">{reviewSelected.includes(index) && <Badge variant="light" color={correctAnswers.includes(index) ? 'green' : 'red'}>Ваш ответ</Badge>}{correctAnswers.includes(index) && <Badge variant="light" color="green">Правильный</Badge>}</Group>}
-        </Group>
+          {locked && (reviewSelected.includes(index) || correctAnswers.includes(index)) && <Group gap="xs" wrap="wrap" pl={28}>{reviewSelected.includes(index) && <Badge variant="light" color={correctAnswers.includes(index) ? 'green' : 'red'}>Ваш ответ</Badge>}{correctAnswers.includes(index) && <Badge variant="light" color="green">Правильный</Badge>}</Group>}
+        </Stack>
       ))}
     </Stack>
   );
@@ -258,7 +255,7 @@ export function QuizPlayPage() {
               <Title order={1} size="h2">{displayedQuestion.text}</Title>
               <Text size="sm" c="dimmed">{multiple ? 'Можно выбрать несколько вариантов.' : 'Выберите один вариант.'}</Text>
               {multiple ? <Checkbox.Group value={values} onChange={(nextValues) => { setDrafts((current) => ({ ...current, [displayedQuestion.id]: nextValues.map(Number) })); setError(''); }}>{options}</Checkbox.Group> : <Radio.Group value={values[0] || ''} onChange={(value) => { setDrafts((current) => ({ ...current, [displayedQuestion.id]: [Number(value)] })); setError(''); }}>{options}</Radio.Group>}
-              {locked && <Alert color={resultColor} icon={correct === true ? <IconCheck size={18} /> : <IconX size={18} />}>{resultMessage}</Alert>}
+              {locked && <Alert color={resultColor} icon={correct === true ? <IconCheck size={18} /> : <IconX size={18} />} title={resultTitle}>{correct === false && (correctOptions.length > 1 ? <Stack gap="xs"><Text size="sm">Правильные ответы:</Text><List size="sm" spacing={4}>{correctOptions.map((option, index) => <List.Item key={`${index}-${option}`}>{option}</List.Item>)}</List></Stack> : <Stack gap={4}><Text size="sm">Правильный ответ:</Text><Text size="sm">{correctOptions[0]}</Text></Stack>)}</Alert>}
               {error && <Alert color="red" icon={<IconAlertCircle size={18} />}>{error}</Alert>}
               <Group justify="flex-end">
                 {reviewing ? <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={() => setReviewing(false)}>К результату</Button> : locked ? <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={next}>{answeredCount === questions.length ? 'Показать результат' : 'К следующему без ответа'}</Button> : <Button h={44} w={{ base: '100%', xs: 'auto' }} onClick={submitAnswer} loading={submitting}>Проверить ответ</Button>}
