@@ -2,39 +2,83 @@
 
 Веб-приложение для создания и прохождения квизов (тестов). Бэкенд — REST API (Spring Boot), фронтенд — SPA на React (Vite). Регистрация и вход по email с подтверждением через OTP.
 
-## Быстрый старт (разные порты)
+## Локальный запуск
+
+### Требования
+
+- Java 17
+- Node.js 22 и npm
+- PostgreSQL 14+
+- Docker — только если PostgreSQL удобнее запускать в контейнере
 
 ### 1. База данных
 
-Поднимите PostgreSQL (порт 5432), создайте БД `quizz`:
+Поднимите PostgreSQL на порту `5432` и создайте базу `quizz`. Готовый локальный compose-файл запускает только базу данных:
 
 ```bash
-# Вариант: только БД через Docker
-cd local && docker-compose up -d
+docker compose -f local/docker-compose.yaml up -d
 ```
 
-Или используйте существующий PostgreSQL: `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`.
+При использовании другого PostgreSQL передайте настройки Spring Boot:
 
-### 2. Бэкенд (порт 8080)
+```bash
+export SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/quizz
+export SPRING_DATASOURCE_USERNAME=postgres
+export SPRING_DATASOURCE_PASSWORD=postgres
+```
+
+Flyway применит миграции автоматически при запуске приложения.
+
+### Вариант A: frontend и backend в dev-режиме
+
+Запустите backend из корня проекта:
 
 ```bash
 ./gradlew bootRun
 ```
 
-Настройте при необходимости: `DB_*`, `MAIL_*`, `JWT_SECRET`. CORS по умолчанию разрешён для `http://localhost:5173`.
-
-### 3. Фронтенд (порт 5173)
+В отдельном терминале запустите Vite:
 
 ```bash
 cd frontend
-cp .env.example .env   # при необходимости отредактировать VITE_API_URL
-npm install
+npm ci
 npm run dev
 ```
 
-Откройте в браузере: http://localhost:5173
+Откройте [http://localhost:5173](http://localhost:5173). Backend доступен на `http://localhost:8080`.
 
-Переменная окружения для API: **`VITE_API_URL`** (по умолчанию `http://localhost:8080`). Указывайте URL бэкенда, если он на другом хосте/порту.
+Для нестандартного адреса API создайте `frontend/.env`:
+
+```dotenv
+VITE_API_URL=http://localhost:8080
+```
+
+### Вариант B: единый адрес без CORS
+
+Соберите frontend с относительными API-путями:
+
+```bash
+cd frontend
+npm ci
+VITE_API_URL="" npm run build
+cd ..
+```
+
+Запустите Spring Boot и подключите собранную статику:
+
+```bash
+SPRING_WEB_RESOURCES_STATIC_LOCATIONS="file:$PWD/frontend/dist/" ./gradlew bootRun
+```
+
+Всё приложение будет доступно на [http://localhost:8080](http://localhost:8080). Frontend обращается к `/api` и `/auth` на том же origin, поэтому CORS в этом режиме не используется.
+
+### Запуск с телефона в локальной сети
+
+В едином режиме откройте на телефоне `http://<локальный-IP-компьютера>:8080`. Телефон и компьютер должны находиться в одной сети, а локальный firewall должен разрешать входящие подключения к порту `8080`.
+
+### Почта и авторизация
+
+Для реальной отправки OTP задайте `MAIL_USERNAME` и `MAIL_PASSWORD`. При необходимости также можно переопределить `JWT_SECRET`, `JWT_EXPIRATION` и `CORS_ALLOWED_ORIGINS`.
 
 ### Деплой одним docker-compose (production)
 
