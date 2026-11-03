@@ -1,4 +1,0 @@
-[submodule "frontend"]
-	path = frontend
-	url = https://github.com/IlyaBikmeev/quizz-frontend.git
-	branch = feat/simple-mantine-ui
