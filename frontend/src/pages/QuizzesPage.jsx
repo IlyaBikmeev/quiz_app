@@ -15,17 +15,17 @@ export function QuizzesPage() {
     let cancelled = false;
     apiJson(`/api/v1/quizzes?page=${page - 1}&size=10`)
       .then((response) => !cancelled && setData(response))
-      .catch(() => !cancelled && setError('Не удалось загрузить квизы.'));
+      .catch(() => !cancelled && setError('Не удалось загрузить тесты.'));
     return () => { cancelled = true; };
   }, [page, requestKey]);
 
   if (error) return <ErrorState title={error} onRetry={() => { setError(''); setData(null); setRequestKey((value) => value + 1); }} />;
-  if (!data) return <LoadingState label="Загрузка квизов…" />;
+  if (!data) return <LoadingState label="Загрузка тестов…" />;
 
   return (
     <Stack gap="lg">
       <Group justify="space-between" align="center">
-        <Title order={1}>Мои квизы</Title>
+        <Title order={1}>Мои тесты</Title>
         <Group gap="xs">
           <Button component={Link} to="/quizzes/import" variant="default" leftSection={<IconFileImport size={16} />} visibleFrom="sm">Импортировать</Button>
           <Button component={Link} to="/quizzes/new" leftSection={<IconPlus size={16} />}>Создать</Button>
@@ -33,8 +33,8 @@ export function QuizzesPage() {
       </Group>
 
       {data.content?.length === 0 ? (
-        <EmptyState title="Квизов пока нет" message="Создайте квиз вручную или импортируйте вопросы из файла.">
-          <Group justify="center"><Button component={Link} to="/quizzes/new">Создать квиз</Button><Button component={Link} to="/quizzes/import" variant="default">Импортировать</Button></Group>
+        <EmptyState title="Тестов пока нет" message="Создайте тест вручную или импортируйте вопросы из файла.">
+          <Group justify="center"><Button component={Link} to="/quizzes/new">Создать тест</Button><Button component={Link} to="/quizzes/import" variant="default">Импортировать</Button></Group>
         </EmptyState>
       ) : (
         <Paper withBorder>

@@ -18,7 +18,7 @@ export function QuizPlayPage() {
   const location = useLocation();
   const reviewAttemptId = new URLSearchParams(location.search).get('attempt');
   const [attempt, setAttempt] = useState(reviewAttemptId ? null : location.state?.attempt || null);
-  const [quizTitle, setQuizTitle] = useState(location.state?.quizTitle || 'Квиз');
+  const [quizTitle, setQuizTitle] = useState(location.state?.quizTitle || 'Тест');
   const [loading, setLoading] = useState(!location.state?.attempt);
   const [loadError, setLoadError] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -57,9 +57,9 @@ export function QuizPlayPage() {
         setFinished(true);
         setCurrentIndex(0);
       }
-      setQuizTitle(quizData.title || 'Квиз');
+      setQuizTitle(quizData.title || 'Тест');
     } catch {
-      setLoadError('Не удалось загрузить квиз.');
+      setLoadError('Не удалось загрузить тест.');
     } finally {
       setLoading(false);
     }
@@ -168,9 +168,9 @@ export function QuizPlayPage() {
     }
   };
 
-  if (loading) return <LoadingState label="Загрузка квиза…" />;
+  if (loading) return <LoadingState label="Загрузка теста…" />;
   if (loadError) return <ErrorState title={loadError} onRetry={load} />;
-  if (!attempt || !questions.length) return <ErrorState title="В квизе нет вопросов" />;
+  if (!attempt || !questions.length) return <ErrorState title="В тесте нет вопросов" />;
 
   const correctCount = progress.filter((value) => value === true).length;
   const answeredCount = progress.filter((value) => value != null).length;
@@ -183,7 +183,7 @@ export function QuizPlayPage() {
         <div><Title order={2} size={56}>{correctCount} из {questions.length}</Title><Text c="dimmed">{percent}% правильных ответов · {formatTime(elapsed)}</Text></div>
         {error && <Alert icon={<IconAlertCircle size={18} />} color="red">{error}</Alert>}
         <Group justify="center"><Button onClick={restart} loading={submitting}>Пройти ещё раз</Button><Button variant="default" onClick={openReview} disabled={submitting}>Посмотреть ответы</Button></Group>
-        <Anchor component={Link} to="/quizzes">Вернуться к квизам</Anchor>
+        <Anchor component={Link} to="/quizzes">Вернуться к тестам</Anchor>
       </Stack>
     );
   }

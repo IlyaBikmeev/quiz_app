@@ -29,7 +29,7 @@ export function Layout() {
             {!validUnknown && valid && (
               <Group gap="xs" wrap="nowrap">
                 <Button component={Link} to="/quizzes" variant={location.pathname === '/quizzes' ? 'light' : 'subtle'} color="dark" visibleFrom="xs" h={44}>
-                  Квизы
+                  Тесты
                 </Button>
                 <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" visibleFrom="sm">
                   Попытки
@@ -72,7 +72,7 @@ export function Layout() {
       {valid && (
         <Drawer opened={navigationOpened} onClose={navigation.close} title="Меню" position="right" size="xs" hiddenFrom="xs" closeButtonProps={{ size: 44 }}>
           <Stack gap="xs">
-            <NavLink component={Link} to="/quizzes" label="Квизы" leftSection={<IconList size={20} />} active={quizzesActive} aria-current={quizzesActive ? 'page' : undefined} h={48} onClick={navigation.close} />
+            <NavLink component={Link} to="/quizzes" label="Тесты" leftSection={<IconList size={20} />} active={quizzesActive} aria-current={quizzesActive ? 'page' : undefined} h={48} onClick={navigation.close} />
             <NavLink component={Link} to="/attempts" label="Мои попытки" leftSection={<IconHistory size={20} />} active={location.pathname === '/attempts'} aria-current={location.pathname === '/attempts' ? 'page' : undefined} h={48} onClick={navigation.close} />
             <NavLink component={Link} to="/profile" label="Профиль" leftSection={<IconUser size={20} />} active={location.pathname === '/profile'} aria-current={location.pathname === '/profile' ? 'page' : undefined} h={48} onClick={navigation.close} />
             <Divider my="xs" />

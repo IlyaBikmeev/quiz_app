@@ -67,7 +67,7 @@ export function AttemptsPage() {
   return (
     <Stack gap="xl" maw={760} mx="auto">
       <Title order={1}>Мои попытки</Title>
-      {!attempts.length && <EmptyState title="Попыток пока нет" message="Откройте квиз и начните прохождение." />}
+      {!attempts.length && <EmptyState title="Попыток пока нет" message="Откройте тест и начните прохождение." />}
       {!!active.length && <Stack gap="sm"><Title order={2} size="h3">Продолжить</Title><AttemptList attempts={active} /></Stack>}
       {!!completed.length && <Stack gap="sm"><Group gap="xs"><IconHistory size={20} /><Title order={2} size="h3">Завершённые</Title></Group><AttemptList attempts={completed} /></Stack>}
     </Stack>

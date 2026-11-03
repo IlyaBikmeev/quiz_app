@@ -46,7 +46,7 @@ export function QuizEditor({ quizId }) {
         form.setValues(values);
         form.resetDirty(values);
       })
-      .catch(() => !cancelled && setLoadError('Не удалось загрузить квиз.'))
+      .catch(() => !cancelled && setLoadError('Не удалось загрузить тест.'))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
   }, [editing, quizId, navigate]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -89,10 +89,10 @@ export function QuizEditor({ quizId }) {
     try {
       const result = await apiJson(editing ? `/api/v1/quizzes/${quizId}` : '/api/v1/quizzes', { method: editing ? 'PUT' : 'POST', body: JSON.stringify(payload) });
       form.resetDirty();
-      notifications.show({ color: 'green', message: editing ? 'Квиз сохранён' : 'Квиз создан' });
+      notifications.show({ color: 'green', message: editing ? 'Тест сохранён' : 'Тест создан' });
       navigate(`/quizzes/${result?.id || quizId}`);
     } catch {
-      setSubmitError('Не удалось сохранить квиз. Попробуйте ещё раз.');
+      setSubmitError('Не удалось сохранить тест. Попробуйте ещё раз.');
       setSaving(false);
     }
   };
@@ -104,7 +104,7 @@ export function QuizEditor({ quizId }) {
     <form onSubmit={form.onSubmit(save)}>
       <Stack gap="lg" maw={760} mx="auto">
         <Anchor component={Link} to={editing ? `/quizzes/${quizId}` : '/quizzes'} size="sm">← Отмена</Anchor>
-        <Group justify="space-between" align="center"><Title order={1}>{editing ? 'Редактировать квиз' : 'Новый квиз'}</Title><Button type="submit" loading={saving} visibleFrom="sm">{editing ? 'Сохранить' : 'Создать'}</Button></Group>
+        <Group justify="space-between" align="center"><Title order={1}>{editing ? 'Редактировать тест' : 'Новый тест'}</Title><Button type="submit" loading={saving} visibleFrom="sm">{editing ? 'Сохранить' : 'Создать'}</Button></Group>
         <TextInput label="Название" placeholder="Например, История России" required {...form.getInputProps('title')} />
 
         {form.values.questions.map((question, questionIndex) => (
@@ -132,7 +132,7 @@ export function QuizEditor({ quizId }) {
 
         <Button type="button" variant="default" leftSection={<IconPlus size={16} />} onClick={() => form.insertListItem('questions', newQuestion())}>Добавить вопрос</Button>
         {submitError && <Alert icon={<IconAlertCircle size={18} />} color="red">{submitError}</Alert>}
-        <Group justify="flex-end"><Button component={Link} to={editing ? `/quizzes/${quizId}` : '/quizzes'} variant="default">Отмена</Button><Button type="submit" loading={saving}>{editing ? 'Сохранить квиз' : 'Создать квиз'}</Button></Group>
+        <Group justify="flex-end"><Button component={Link} to={editing ? `/quizzes/${quizId}` : '/quizzes'} variant="default">Отмена</Button><Button type="submit" loading={saving}>{editing ? 'Сохранить тест' : 'Создать тест'}</Button></Group>
       </Stack>
     </form>
   );

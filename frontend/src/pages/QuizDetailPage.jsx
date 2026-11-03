@@ -26,7 +26,7 @@ export function QuizDetailPage() {
         if (!response.ok) throw new Error();
         return response.json();
       }),
-    ]).then(([quizData, attemptData]) => { setQuiz(quizData); setActiveAttempt(attemptData); }).catch(() => setError('Не удалось загрузить квиз.'));
+    ]).then(([quizData, attemptData]) => { setQuiz(quizData); setActiveAttempt(attemptData); }).catch(() => setError('Не удалось загрузить тест.'));
   }, [id]);
   useEffect(() => { loadQuiz(); }, [loadQuiz]);
 
@@ -36,14 +36,14 @@ export function QuizDetailPage() {
       const attempt = await apiJson(`/api/v1/quizzes/${id}/attempts`);
       navigate(`/quizzes/${id}/play`, { state: { attempt, quizTitle: quiz.title } });
     } catch {
-      notifications.show({ color: 'red', title: 'Не удалось начать квиз', message: 'Попробуйте ещё раз.' });
+      notifications.show({ color: 'red', title: 'Не удалось начать тест', message: 'Попробуйте ещё раз.' });
       setStarting(false);
     }
   };
 
   const remove = () => modals.openConfirmModal({
     title: `Удалить «${quiz.title}»?`,
-    children: <Text size="sm">Квиз и связанные попытки будут удалены без возможности восстановления.</Text>,
+    children: <Text size="sm">Тест и связанные попытки будут удалены без возможности восстановления.</Text>,
     labels: { confirm: 'Удалить', cancel: 'Отмена' },
     confirmProps: { color: 'red' },
     onConfirm: async () => {
@@ -52,23 +52,23 @@ export function QuizDetailPage() {
         if (!response.ok) throw new Error();
         navigate('/quizzes');
       } catch {
-        notifications.show({ color: 'red', title: 'Не удалось удалить квиз', message: 'Попробуйте ещё раз.' });
+        notifications.show({ color: 'red', title: 'Не удалось удалить тест', message: 'Попробуйте ещё раз.' });
       }
     },
   });
 
   if (error) return <ErrorState title={error} onRetry={loadQuiz} />;
-  if (!quiz) return <LoadingState label="Загрузка квиза…" />;
+  if (!quiz) return <LoadingState label="Загрузка теста…" />;
 
   return (
     <Stack gap="lg" maw={760} mx="auto">
       <Group justify="space-between" align="center">
-        <Anchor component={Link} to="/quizzes" size="sm">← Все квизы</Anchor>
+        <Anchor component={Link} to="/quizzes" size="sm">← Все тесты</Anchor>
         {quiz.canEdit && <Menu position="bottom-end"><Menu.Target><ActionIcon variant="default" size={44} aria-label="Действия"><IconDots size={20} /></ActionIcon></Menu.Target><Menu.Dropdown><Menu.Item component={Link} to={`/quizzes/${quiz.id}/edit`} leftSection={<IconEdit size={16} />}>Редактировать</Menu.Item><Menu.Item color="red" leftSection={<IconTrash size={16} />} onClick={remove}>Удалить</Menu.Item></Menu.Dropdown></Menu>}
       </Group>
       <Box miw={0}><Title order={1}>{quiz.title}</Title><Text c="dimmed">{quiz.questions?.length || 0} вопросов</Text></Box>
-      {!quiz.questions?.length && <Alert icon={<IconAlertCircle size={18} />} color="yellow">В квизе нет вопросов.</Alert>}
-      <Button size="md" h={48} leftSection={<IconPlayerPlay size={18} />} onClick={start} loading={starting} disabled={!quiz.questions?.length}>{activeAttempt ? `Продолжить · ${activeAttempt.answeredQuestions} из ${activeAttempt.totalQuestions}` : 'Начать квиз'}</Button>
+      {!quiz.questions?.length && <Alert icon={<IconAlertCircle size={18} />} color="yellow">В тесте нет вопросов.</Alert>}
+      <Button size="md" h={48} leftSection={<IconPlayerPlay size={18} />} onClick={start} loading={starting} disabled={!quiz.questions?.length}>{activeAttempt ? `Продолжить · ${activeAttempt.answeredQuestions} из ${activeAttempt.totalQuestions}` : 'Начать тест'}</Button>
       <Paper withBorder p="lg">
         <Title order={2} size="h3" mb="sm">Вопросы</Title>
         <List type="ordered" spacing="sm">{quiz.questions?.slice(0, showAllQuestions ? undefined : 10).map((question) => <List.Item key={question.id}>{question.text}<Text component="span" size="sm" c="dimmed"> · {question.options?.length || 0} вариантов</Text></List.Item>)}</List>
