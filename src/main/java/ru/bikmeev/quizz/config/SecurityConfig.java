@@ -19,6 +19,7 @@ import ru.bikmeev.quizz.config.logging.RequestLoggingFilter;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 
 @Configuration
@@ -35,7 +36,22 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/assets/**",
+                                "/quizforge.svg",
+                                "/favicon.ico",
+                                "/login",
+                                "/register",
+                                "/verify",
+                                "/quizzes/**",
+                                "/profile",
+                                "/settings",
+                                "/card-sets/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
