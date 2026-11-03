@@ -28,4 +28,7 @@ WORKDIR /app
 COPY --from=builder /home/gradle/project/build/libs/*.jar app.jar
 EXPOSE 8080
 ENV JAVA_OPTS="-Xmx512m"
+ENV MANAGEMENT_ENDPOINT_HEALTH_PROBES_ENABLED="true"
+HEALTHCHECK --interval=15s --timeout=5s --start-period=120s --retries=4 \
+    CMD wget -q --spider http://127.0.0.1:8080/actuator/health/readiness || exit 1
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

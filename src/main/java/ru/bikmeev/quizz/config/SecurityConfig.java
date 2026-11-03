@@ -44,6 +44,7 @@ public class SecurityConfig {
                                 "/assets/**",
                                 "/quizforge.svg",
                                 "/favicon.ico",
+                                "/actuator/health/**",
                                 "/login",
                                 "/register",
                                 "/verify",
