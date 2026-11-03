@@ -1,5 +1,6 @@
-import { ActionIcon, AppShell, Button, Container, Group, Menu, Text, Title } from '@mantine/core';
-import { IconHistory, IconList, IconLogout, IconPlus, IconUser } from '@tabler/icons-react';
+import { ActionIcon, AppShell, Button, Container, Divider, Drawer, Group, Menu, NavLink, Stack, Text, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { IconHistory, IconList, IconLogout, IconMenu2, IconUser } from '@tabler/icons-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -7,14 +8,17 @@ export function Layout() {
   const { valid, validUnknown, setToken } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const [navigationOpened, navigation] = useDisclosure(false);
+  const quizzesActive = location.pathname.startsWith('/quizzes');
 
   const logout = () => {
+    navigation.close();
     setToken(null);
     navigate('/login');
   };
 
   return (
-    <AppShell header={{ height: 60 }} footer={{ height: { base: valid ? 64 : 0, xs: 0 } }} padding="md">
+    <AppShell header={{ height: 60 }} padding="md">
       <AppShell.Header>
         <Container size="md" h="100%">
           <Group h="100%" justify="space-between" wrap="nowrap">
@@ -30,12 +34,6 @@ export function Layout() {
                 <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" visibleFrom="sm">
                   Попытки
                 </Button>
-                <Button component={Link} to="/quizzes/new" leftSection={<IconPlus size={16} />} visibleFrom="xs">
-                  Создать
-                </Button>
-                <ActionIcon component={Link} to="/quizzes/new" aria-label="Создать квиз" size={44} hiddenFrom="xs">
-                  <IconPlus size={20} />
-                </ActionIcon>
                 <Menu position="bottom-end" width={180}>
                   <Menu.Target>
                     <ActionIcon variant="subtle" color="dark" size={44} aria-label="Меню профиля" visibleFrom="xs">
@@ -49,6 +47,9 @@ export function Layout() {
                     <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={logout}>Выйти</Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
+                <ActionIcon variant="subtle" color="dark" size={44} aria-label="Открыть меню" hiddenFrom="xs" onClick={navigation.open}>
+                  <IconMenu2 size={22} />
+                </ActionIcon>
               </Group>
             )}
 
@@ -69,13 +70,15 @@ export function Layout() {
         </Container>
       </AppShell.Main>
       {valid && (
-        <AppShell.Footer hiddenFrom="xs">
-          <Group grow h="100%" gap={0}>
-            <Button component={Link} to="/quizzes" variant={location.pathname.startsWith('/quizzes') ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconList size={20} />} aria-current={location.pathname.startsWith('/quizzes') ? 'page' : undefined}>Квизы</Button>
-            <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconHistory size={20} />} aria-current={location.pathname === '/attempts' ? 'page' : undefined}>Попытки</Button>
-            <Button component={Link} to="/profile" variant={location.pathname === '/profile' ? 'light' : 'subtle'} color="dark" h="100%" radius={0} leftSection={<IconUser size={20} />} aria-current={location.pathname === '/profile' ? 'page' : undefined}>Профиль</Button>
-          </Group>
-        </AppShell.Footer>
+        <Drawer opened={navigationOpened} onClose={navigation.close} title="Меню" position="right" size="xs" hiddenFrom="xs" closeButtonProps={{ size: 44 }}>
+          <Stack gap="xs">
+            <NavLink component={Link} to="/quizzes" label="Квизы" leftSection={<IconList size={20} />} active={quizzesActive} aria-current={quizzesActive ? 'page' : undefined} h={48} onClick={navigation.close} />
+            <NavLink component={Link} to="/attempts" label="Мои попытки" leftSection={<IconHistory size={20} />} active={location.pathname === '/attempts'} aria-current={location.pathname === '/attempts' ? 'page' : undefined} h={48} onClick={navigation.close} />
+            <NavLink component={Link} to="/profile" label="Профиль" leftSection={<IconUser size={20} />} active={location.pathname === '/profile'} aria-current={location.pathname === '/profile' ? 'page' : undefined} h={48} onClick={navigation.close} />
+            <Divider my="xs" />
+            <Button variant="subtle" color="red" justify="flex-start" h={48} leftSection={<IconLogout size={20} />} onClick={logout}>Выйти</Button>
+          </Stack>
+        </Drawer>
       )}
     </AppShell>
   );
