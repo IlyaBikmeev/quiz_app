@@ -1,5 +1,5 @@
 import { ActionIcon, AppShell, Button, Container, Group, Menu, Text, Title } from '@mantine/core';
-import { IconLogout, IconPlus, IconUser } from '@tabler/icons-react';
+import { IconHistory, IconLogout, IconPlus, IconUser } from '@tabler/icons-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,6 +27,9 @@ export function Layout() {
                 <Button component={Link} to="/quizzes" variant={location.pathname === '/quizzes' ? 'light' : 'subtle'} color="dark">
                   Квизы
                 </Button>
+                <Button component={Link} to="/attempts" variant={location.pathname === '/attempts' ? 'light' : 'subtle'} color="dark" visibleFrom="sm">
+                  Попытки
+                </Button>
                 <Button component={Link} to="/quizzes/new" leftSection={<IconPlus size={16} />} visibleFrom="xs">
                   Создать
                 </Button>
@@ -40,6 +43,7 @@ export function Layout() {
                     </ActionIcon>
                   </Menu.Target>
                   <Menu.Dropdown>
+                    <Menu.Item component={Link} to="/attempts" leftSection={<IconHistory size={16} />}>Мои попытки</Menu.Item>
                     <Menu.Item component={Link} to="/profile" leftSection={<IconUser size={16} />}>Профиль</Menu.Item>
                     <Menu.Divider />
                     <Menu.Item color="red" leftSection={<IconLogout size={16} />} onClick={logout}>Выйти</Menu.Item>

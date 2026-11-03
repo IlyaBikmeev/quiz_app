@@ -13,6 +13,7 @@ public class SpaController {
             "/verify",
             "/quizzes",
             "/quizzes/**",
+            "/attempts",
             "/profile",
             "/settings",
             "/card-sets/**"

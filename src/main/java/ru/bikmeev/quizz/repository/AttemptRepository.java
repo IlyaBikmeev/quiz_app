@@ -8,5 +8,6 @@ import java.util.Optional;
 
 public interface AttemptRepository extends JpaRepository<AttemptEntity, Long> {
     List<AttemptEntity> findByQuizId(Long quizId);
+    List<AttemptEntity> findByUserIdOrderByStartedAtDesc(Long userId);
     Optional<AttemptEntity> findFirstByQuizIdAndUserIdAndCompletedAtIsNullOrderByIdDesc(Long quizId, Long userId);
 }

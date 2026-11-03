@@ -13,6 +13,7 @@ import { QuizImportPage } from './pages/QuizImportPage';
 import { QuizPlayPage } from './pages/QuizPlayPage';
 import { QuizEditPage } from './pages/QuizEditPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { AttemptsPage } from './pages/AttemptsPage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="quizzes/:id" element={<ProtectedRoute><QuizDetailPage /></ProtectedRoute>} />
             <Route path="quizzes/:id/edit" element={<ProtectedRoute><QuizEditPage /></ProtectedRoute>} />
             <Route path="quizzes/:quizId/play" element={<ProtectedRoute><QuizPlayPage /></ProtectedRoute>} />
+            <Route path="attempts" element={<ProtectedRoute><AttemptsPage /></ProtectedRoute>} />
             <Route path="card-sets/*" element={<Navigate to="/quizzes" replace />} />
             <Route path="profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="settings" element={<Navigate to="/profile" replace />} />

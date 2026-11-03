@@ -16,7 +16,8 @@ function formatTime(totalSeconds) {
 export function QuizPlayPage() {
   const { quizId } = useParams();
   const location = useLocation();
-  const [attempt, setAttempt] = useState(location.state?.attempt || null);
+  const reviewAttemptId = new URLSearchParams(location.search).get('attempt');
+  const [attempt, setAttempt] = useState(reviewAttemptId ? null : location.state?.attempt || null);
   const [quizTitle, setQuizTitle] = useState(location.state?.quizTitle || 'Квиз');
   const [loading, setLoading] = useState(!location.state?.attempt);
   const [loadError, setLoadError] = useState('');
@@ -32,11 +33,16 @@ export function QuizPlayPage() {
 
   const applyAttempt = useCallback((data) => {
     setAttempt(data);
-    const nextProgress = (data.questions || []).map((_, index) => data.progress?.[index] ?? null);
+    const nextProgress = (data.questions || []).map((question, index) =>
+      typeof question.correct === 'boolean' ? question.correct : data.progress?.[index] ?? null
+    );
     setProgress(nextProgress);
     setDrafts(Object.fromEntries((data.questions || []).map((question) => [question.id, question.selectedAnswers || []])));
     const unanswered = nextProgress.findIndex((value) => value == null);
-    if (data.completedAt) setFinished(true);
+    if (data.completedAt) {
+      setFinished(true);
+      setElapsed(Math.max(0, Math.floor((new Date(data.completedAt) - new Date(data.startedAt)) / 1000)));
+    }
     setCurrentIndex(unanswered >= 0 ? unanswered : 0);
   }, []);
 
@@ -44,15 +50,20 @@ export function QuizPlayPage() {
     setLoading(true);
     setLoadError('');
     try {
-      const [attemptData, quizData] = await Promise.all([apiJson(`/api/v1/quizzes/${quizId}/attempts`), apiJson(`/api/v1/quizzes/${quizId}`)]);
+      const [attemptData, quizData] = await Promise.all([apiJson(reviewAttemptId ? `/api/v1/attempts/${reviewAttemptId}` : `/api/v1/quizzes/${quizId}/attempts`), apiJson(`/api/v1/quizzes/${quizId}`)]);
       applyAttempt(attemptData);
+      if (reviewAttemptId) {
+        setReviewing(true);
+        setFinished(true);
+        setCurrentIndex(0);
+      }
       setQuizTitle(quizData.title || 'Квиз');
     } catch {
       setLoadError('Не удалось загрузить квиз.');
     } finally {
       setLoading(false);
     }
-  }, [quizId, applyAttempt]);
+  }, [quizId, reviewAttemptId, applyAttempt]);
 
   useEffect(() => {
     if (attempt) {

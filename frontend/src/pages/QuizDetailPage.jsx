@@ -13,11 +13,19 @@ export function QuizDetailPage() {
   const [quiz, setQuiz] = useState(null);
   const [error, setError] = useState('');
   const [starting, setStarting] = useState(false);
+  const [activeAttempt, setActiveAttempt] = useState(null);
 
   const loadQuiz = useCallback(() => {
     setQuiz(null);
     setError('');
-    apiJson(`/api/v1/quizzes/${id}`).then(setQuiz).catch(() => setError('Не удалось загрузить квиз.'));
+    Promise.all([
+      apiJson(`/api/v1/quizzes/${id}`),
+      apiFetch(`/api/v1/quizzes/${id}/attempts/active`).then(async (response) => {
+        if (response.status === 404) return null;
+        if (!response.ok) throw new Error();
+        return response.json();
+      }),
+    ]).then(([quizData, attemptData]) => { setQuiz(quizData); setActiveAttempt(attemptData); }).catch(() => setError('Не удалось загрузить квиз.'));
   }, [id]);
   useEffect(() => { loadQuiz(); }, [loadQuiz]);
 
@@ -59,7 +67,7 @@ export function QuizDetailPage() {
         {quiz.canEdit && <Menu position="bottom-end"><Menu.Target><Button variant="default" px="xs" aria-label="Действия"><IconDots size={18} /></Button></Menu.Target><Menu.Dropdown><Menu.Item component={Link} to={`/quizzes/${quiz.id}/edit`} leftSection={<IconEdit size={16} />}>Редактировать</Menu.Item><Menu.Item color="red" leftSection={<IconTrash size={16} />} onClick={remove}>Удалить</Menu.Item></Menu.Dropdown></Menu>}
       </Group>
       {!quiz.questions?.length && <Alert icon={<IconAlertCircle size={18} />} color="yellow">В квизе нет вопросов.</Alert>}
-      <Button size="md" leftSection={<IconPlayerPlay size={18} />} onClick={start} loading={starting} disabled={!quiz.questions?.length}>Начать квиз</Button>
+      <Button size="md" leftSection={<IconPlayerPlay size={18} />} onClick={start} loading={starting} disabled={!quiz.questions?.length}>{activeAttempt ? `Продолжить · ${activeAttempt.answeredQuestions} из ${activeAttempt.totalQuestions}` : 'Начать квиз'}</Button>
       <Paper withBorder p="lg">
         <Title order={2} size="h3" mb="sm">Вопросы</Title>
         <List type="ordered" spacing="sm">{quiz.questions?.map((question) => <List.Item key={question.id}>{question.text}<Text component="span" size="sm" c="dimmed"> · {question.options?.length || 0} вариантов</Text></List.Item>)}</List>

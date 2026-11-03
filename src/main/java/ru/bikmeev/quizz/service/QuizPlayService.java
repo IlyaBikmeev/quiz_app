@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import ru.bikmeev.quizz.dto.AnswerRequest;
 import ru.bikmeev.quizz.dto.AnswerResponse;
 import ru.bikmeev.quizz.dto.AttemptResponse;
+import ru.bikmeev.quizz.dto.AttemptSummaryResponse;
 import ru.bikmeev.quizz.entity.AnswerEntity;
 import ru.bikmeev.quizz.entity.AttemptEntity;
 import ru.bikmeev.quizz.entity.QuestionEntity;
@@ -22,6 +23,7 @@ import ru.bikmeev.quizz.repository.QuizRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -57,10 +59,29 @@ public class QuizPlayService {
     }
 
     @Transactional(readOnly = true)
+    public List<AttemptSummaryResponse> getCurrentUserAttempts() {
+        Long userId = authService.getCurrentUser().getId();
+        return attemptRepository.findByUserIdOrderByStartedAtDesc(userId).stream()
+                .map(this::toSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<AttemptSummaryResponse> getActiveAttempt(Long quizId) {
+        Long userId = authService.getCurrentUser().getId();
+        return attemptRepository.findFirstByQuizIdAndUserIdAndCompletedAtIsNullOrderByIdDesc(quizId, userId)
+                .map(this::toSummary);
+    }
+
+    @Transactional(readOnly = true)
     public AttemptResponse getAttemptForReview(Long attemptId) {
-        return attemptRepository.findById(attemptId)
-                .map(attemptMapper::toResponse)
+        UserEntity currentUser = authService.getCurrentUser();
+        AttemptEntity attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No attempt with id %d found".formatted(attemptId)));
+        if (!attempt.getUser().getId().equals(currentUser.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "У вас нет доступа к этой попытке");
+        }
+        return attemptMapper.toResponse(attempt);
     }
 
     @Transactional
@@ -111,8 +132,9 @@ public class QuizPlayService {
         log.info("Answer saved answerId={} attemptId={} questionId={}",
                 savedAnswer.getId(), attemptId, question.getId());
 
+        List<AnswerEntity> answersForAttempt = answerRepository.findByAttemptIdWithQuestion(attemptId);
         int totalQuestions = attempt.getQuiz().getQuestions().size();
-        long answeredCount = attempt.getAnswers().size();
+        long answeredCount = answersForAttempt.size();
 
         if (answeredCount == totalQuestions) {
             attempt.setCompletedAt(Instant.now());
@@ -120,7 +142,6 @@ public class QuizPlayService {
         }
 
         int answeredQuestions = (int) answeredCount;
-        List<AnswerEntity> answersForAttempt = attempt.getAnswers();
         int correctAnswersCount = (int) answersForAttempt.stream()
                 .filter(a -> new ArrayList<>(a.getQuestion().getCorrectAnswers()).equals(a.getSelectedAnswers()))
                 .count();
@@ -131,6 +152,23 @@ public class QuizPlayService {
                 .totalQuestions(totalQuestions)
                 .correctAnswersCount(correctAnswersCount)
                 .correctAnswers(new ArrayList<>(question.getCorrectAnswers()))
+                .build();
+    }
+
+    private AttemptSummaryResponse toSummary(AttemptEntity attempt) {
+        int correctAnswers = (int) attempt.getAnswers().stream()
+                .filter(answer -> new ArrayList<>(answer.getQuestion().getCorrectAnswers())
+                        .equals(answer.getSelectedAnswers()))
+                .count();
+        return AttemptSummaryResponse.builder()
+                .id(attempt.getId())
+                .quizId(attempt.getQuiz().getId())
+                .quizTitle(attempt.getQuiz().getTitle())
+                .startedAt(attempt.getStartedAt())
+                .completedAt(attempt.getCompletedAt())
+                .answeredQuestions(attempt.getAnswers().size())
+                .totalQuestions(attempt.getQuiz().getQuestions().size())
+                .correctAnswers(correctAnswers)
                 .build();
     }
 }

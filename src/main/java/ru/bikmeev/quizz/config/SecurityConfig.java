@@ -49,6 +49,7 @@ public class SecurityConfig {
                                 "/register",
                                 "/verify",
                                 "/quizzes/**",
+                                "/attempts",
                                 "/profile",
                                 "/settings",
                                 "/card-sets/**"

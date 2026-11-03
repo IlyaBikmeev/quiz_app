@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.bikmeev.quizz.dto.AnswerRequest;
 import ru.bikmeev.quizz.dto.AnswerResponse;
 import ru.bikmeev.quizz.dto.AttemptResponse;
+import ru.bikmeev.quizz.dto.AttemptSummaryResponse;
 import ru.bikmeev.quizz.service.QuizPlayService;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,13 +31,22 @@ public class QuizPlayRestController {
         return ResponseEntity.ok(quizPlayService.startOrResumeAttempt(quizId));
     }
 
+    @GetMapping("/users/me/attempts")
+    public ResponseEntity<List<AttemptSummaryResponse>> getCurrentUserAttempts() {
+        return ResponseEntity.ok(quizPlayService.getCurrentUserAttempts());
+    }
+
+    @GetMapping("/quizzes/{quizId}/attempts/active")
+    public ResponseEntity<AttemptSummaryResponse> getActiveAttempt(@PathVariable Long quizId) {
+        return ResponseEntity.of(quizPlayService.getActiveAttempt(quizId));
+    }
+
     /** Returns attempt with full review data (for owner). Used for "Посмотреть ответы" after finish and for resuming. */
     @GetMapping("/attempts/{attemptId}")
     public ResponseEntity<AttemptResponse> getAttemptForReview(@PathVariable Long attemptId) {
         return ResponseEntity.ok(quizPlayService.getAttemptForReview(attemptId));
     }
 
-    //TODO Какой-то баг, не завершается автоматически щас квиз после ответа на последний вопрос
     @PostMapping("/attempts/{attemptId}/answer")
     public ResponseEntity<AnswerResponse> answerToQuestion(@PathVariable Long attemptId,
                                                            @RequestBody AnswerRequest request) {
